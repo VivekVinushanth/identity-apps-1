@@ -18,10 +18,11 @@
 
 import { hasRequiredScopes, isFeatureEnabled } from "@wso2is/core/helpers";
 import { SBACInterface, TestableComponentInterface } from "@wso2is/core/models";
+import { EmphasizedSegment } from "@wso2is/react-components";
 import React, { FunctionComponent, ReactElement, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
-import { List } from "semantic-ui-react";
+import { List, Placeholder } from "semantic-ui-react";
 import { EmailRecovery, SecurityQuestionsComponent } from "./options";
 import { getPreference } from "../../api";
 import { AppConstants } from "../../constants";
@@ -69,12 +70,13 @@ export const AccountRecoveryComponent: FunctionComponent<AccountRecoveryProps> =
     const [ isQsRecoveryEnabled, setIsQsRecoveryEnabled ] = useState<boolean>(false);
     const [ isNotificationRecoveryEnabled, setIsNotificationRecoveryEnabled ] = useState<boolean>(false);
     const [ isUsernameRecoveryEnabled, setIsUsernameRecoveryEnabled ] = useState<boolean>(false);
+    const [ isAccountRecoveryDetailsLoading, setIsAccountRecoveryDetailsLoading ] = useState<boolean>(false);
 
     /**
      * The following method gets the preference for account recovery.
      */
     const getPreferences = (): void => {
-
+        setIsAccountRecoveryDetailsLoading(true);
         const recoveryConnector: PreferenceRequest[] = [
             {
                 "connector-name": RECOVERY_CONNECTOR,
@@ -88,9 +90,9 @@ export const AccountRecoveryComponent: FunctionComponent<AccountRecoveryProps> =
         getPreference(recoveryConnector)
             .then((response) => {
                 if (response) {
-                   const passwordRecoveryOptions: PreferenceConnectorResponse[] = response;
+                    const passwordRecoveryOptions: PreferenceConnectorResponse[] = response;
 
-                   const responseProperties: PreferenceProperty[] = passwordRecoveryOptions[0].properties;
+                    const responseProperties: PreferenceProperty[] = passwordRecoveryOptions[0].properties;
                     responseProperties.forEach((prop) =>{
                         if (prop.name === RECOVERY_PASSWORD_QUESTION){
                             setIsQsRecoveryEnabled(prop.value.toLowerCase() == "true" ? true : false);
@@ -140,6 +142,9 @@ export const AccountRecoveryComponent: FunctionComponent<AccountRecoveryProps> =
                         "myAccount:sections.accountRecovery.preference.notifications.genericError.message"
                     )
                 });
+            })
+            .finally(() => {
+                setIsAccountRecoveryDetailsLoading(false);
             });
     };
 
@@ -150,69 +155,83 @@ export const AccountRecoveryComponent: FunctionComponent<AccountRecoveryProps> =
         getPreferences();
     }, []);
 
-    return (
-        <>
-            {
-                ( isQsRecoveryEnabled || isNotificationRecoveryEnabled || isUsernameRecoveryEnabled ) ?
-                    (
-                        <SettingsSection
-                            data-testid={ `${testId}-settings-section` }
-                            description={ t("myAccount:sections.accountRecovery.description") }
-                            header={ t("myAccount:sections.accountRecovery.heading") }
-                        >
-                            <List divided={ true } verticalAlign="middle" className="main-content-inner">
-                                <List.Item className="inner-list-item">
-                                    {
-                                        hasRequiredScopes(
-                                            featureConfig?.security,
-                                            featureConfig?.security?.scopes?.read,
-                                            allowedScopes
-                                        ) &&
-                                        isFeatureEnabled(
-                                            featureConfig?.security,
-                                            AppConstants.FEATURE_DICTIONARY
-                                                .get("SECURITY_ACCOUNT_RECOVERY_CHALLENGE_QUESTIONS")
-                                        ) &&
-                                        isQsRecoveryEnabled
-                                            ? (
-                                                <SecurityQuestionsComponent
-                                                    onAlertFired=
-                                                        { onAlertFired }
-                                                    data-testid=
-                                                        { `${testId}-settings-section-security-questions-component` }
-                                                />
-                                            )
-                                            : null
-                                    }
-                                </List.Item>
-                                <List.Item className="inner-list-item">
-                                    {
-                                        hasRequiredScopes(
-                                            featureConfig?.security,
-                                            featureConfig?.security?.scopes?.read,
-                                            allowedScopes
-                                        ) &&
-                                        isFeatureEnabled(
-                                            featureConfig?.security,
-                                            AppConstants.FEATURE_DICTIONARY
-                                                .get("SECURITY_ACCOUNT_RECOVERY_EMAIL_RECOVERY")
-                                        ) &&
-                                        (isNotificationRecoveryEnabled || isUsernameRecoveryEnabled)
-                                            ? (
-                                                <EmailRecovery
-                                                    onAlertFired={ onAlertFired }
-                                                    data-testid={ `${testId}-settings-section-email-recovery` }
-                                                />
-                                            )
-                                            : null
-                                    }
-                                </List.Item>
-                            </List>
-                        </SettingsSection>
-                    )
-                    : null
-            }
-        </>
+    return (!isAccountRecoveryDetailsLoading? (
+                <>
+                    {
+                        ( isQsRecoveryEnabled || isNotificationRecoveryEnabled || isUsernameRecoveryEnabled ) ?
+                            (
+                                <SettingsSection
+                                    data-testid={ `${testId}-settings-section` }
+                                    description={ t("myAccount:sections.accountRecovery.description") }
+                                    header={ t("myAccount:sections.accountRecovery.heading") }
+                                >
+                                    <List divided={ true } verticalAlign="middle" className="main-content-inner">
+                                        <List.Item className="inner-list-item">
+                                            {
+                                                hasRequiredScopes(
+                                                    featureConfig?.security,
+                                                    featureConfig?.security?.scopes?.read,
+                                                    allowedScopes
+                                                ) &&
+                                                isFeatureEnabled(
+                                                    featureConfig?.security,
+                                                    AppConstants.FEATURE_DICTIONARY
+                                                        .get("SECURITY_ACCOUNT_RECOVERY_CHALLENGE_QUESTIONS")
+                                                ) &&
+                                                isQsRecoveryEnabled
+                                                    ? (
+                                                        <SecurityQuestionsComponent
+                                                            onAlertFired=
+                                                                { onAlertFired }
+                                                            data-testid=
+                                                                { `${testId}-settings-section-security-questions-component` }
+                                                        />
+                                                    )
+                                                    : null
+                                            }
+                                        </List.Item>
+                                        <List.Item className="inner-list-item">
+                                            {
+                                                hasRequiredScopes(
+                                                    featureConfig?.security,
+                                                    featureConfig?.security?.scopes?.read,
+                                                    allowedScopes
+                                                ) &&
+                                                isFeatureEnabled(
+                                                    featureConfig?.security,
+                                                    AppConstants.FEATURE_DICTIONARY
+                                                        .get("SECURITY_ACCOUNT_RECOVERY_EMAIL_RECOVERY")
+                                                ) &&
+                                                (isNotificationRecoveryEnabled || isUsernameRecoveryEnabled)
+                                                    ? (
+                                                        <EmailRecovery
+                                                            onAlertFired={ onAlertFired }
+                                                            data-testid={ `${testId}-settings-section-email-recovery` }
+                                                        />
+                                                    )
+                                                    : null
+                                            }
+                                        </List.Item>
+                                    </List>
+                                </SettingsSection>
+                            )
+                            : null
+                    }
+                </>
+            ) :
+            <EmphasizedSegment padded="very">
+                <Placeholder fluid>
+                    <Placeholder.Header image>
+                        <Placeholder.Line />
+                        <Placeholder.Line />
+                    </Placeholder.Header>
+                    <Placeholder.Paragraph>
+                        <Placeholder.Line />
+                        <Placeholder.Line />
+                        <Placeholder.Line />
+                    </Placeholder.Paragraph>
+                </Placeholder>
+            </EmphasizedSegment>
     );
 };
 
