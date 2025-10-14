@@ -31,6 +31,7 @@ import { BrandingPreferenceResourceEndpointsInterface } from "@wso2is/admin.bran
 import { CertificatesResourceEndpointsInterface } from "@wso2is/admin.certificates.v1";
 import { ClaimResourceEndpointsInterface } from "@wso2is/admin.claims.v1/models/endpoints";
 import { ConnectionResourceEndpointsInterface } from "@wso2is/admin.connections.v1";
+import { FlowBuilderCoreResourceEndpointsInterface } from "@wso2is/admin.flow-builder-core.v1/models/endpoints";
 import { GroupsResourceEndpointsInterface } from "@wso2is/admin.groups.v1/models/endpoints";
 import { RemoteLoggingResourceEndpointsInterface } from "@wso2is/admin.logs.v1/models/endpoints";
 import { ScopesResourceEndpointsInterface } from "@wso2is/admin.oidc-scopes.v1";
@@ -53,6 +54,7 @@ import {
     FeatureAccessConfigInterface
 } from "@wso2is/core/models";
 import { I18nModuleOptionsInterface } from "@wso2is/i18n";
+import { WorkflowRequestsResourceEndpointsInterface } from "../../admin.workflow-requests.v1/configs/endpoints";
 
 export type ConfigInterface = CommonConfigInterface<
     DeploymentConfigInterface,
@@ -77,6 +79,10 @@ export interface FeatureConfigInterface {
      * Action management feature.
      */
     actions?: FeatureAccessConfigInterface;
+    /**
+     * Agent management feature.
+     */
+    agents?: FeatureAccessConfigInterface;
     /**
      * Admin user management feature.
      */
@@ -285,6 +291,14 @@ export interface FeatureConfigInterface {
      * Registration flow builder feature.
      */
     registrationFlowBuilder?: FeatureAccessConfigInterface;
+    /**
+     * Workflow instances feature.
+     */
+    workflowInstances?: FeatureAccessConfigInterface;
+    /**
+     * Workflow feature.
+     */
+    approvalWorkflows?: FeatureAccessConfigInterface;
 }
 
 /**
@@ -379,9 +393,33 @@ export interface MultiTenancyConfigInterface {
 }
 
 /**
+ * Interface for. Actions UI level configurations.
+ */
+export interface ActionsUIConfigInterface {
+    types: {
+        [ key: string ]: {
+            version: {
+                latest: string;
+            }
+        }
+    }
+}
+
+/**
  * Portal UI config interface inheriting the common configs from core module.
  */
 export interface UIConfigInterface extends CommonUIConfigInterface<FeatureConfigInterface> {
+    /**
+     * Actions related configurations.
+     */
+    actions: ActionsUIConfigInterface;
+    /**
+     * Should the admin notice be enabled.
+     */
+    adminNotice?: {
+        enabled: boolean;
+        plannedRollOutDate: string;
+    };
     /**
      * How should the application templates be loaded.
      * If `LOCAL` is selected, app will resort to in app templates.
@@ -413,10 +451,6 @@ export interface UIConfigInterface extends CommonUIConfigInterface<FeatureConfig
      * Configurations for IDP templates.
      */
     identityProviderTemplates: IdentityProviderTemplatesConfigInterface;
-    /**
-     * Should the admin data separation notice be enabled.
-     */
-    isAdminDataSeparationNoticeEnabled?: boolean;
     /**
      * Should default dialects be allowed for editing.
      */
@@ -470,10 +504,6 @@ export interface UIConfigInterface extends CommonUIConfigInterface<FeatureConfig
      */
     enableOldUIForEmailProvider: boolean;
     /**
-     * Show password of email provider.
-     */
-    showPasswordOfEmailProvider: boolean;
-    /**
      * Enable/Disable custom email template feature
      */
     enableCustomEmailTemplates: boolean;
@@ -517,6 +547,10 @@ export interface UIConfigInterface extends CommonUIConfigInterface<FeatureConfig
      * Hidden userstores
      */
     hiddenUserStores: string[];
+    /**
+     * System reserved userstores
+     */
+    systemReservedUserStores: string[];
     /**
      * App Logos
      */
@@ -574,6 +608,10 @@ export interface UIConfigInterface extends CommonUIConfigInterface<FeatureConfig
      */
     passwordPolicyConfigs: PasswordPolicyConfigsInterface;
     /**
+     * Config to check whether the WS-Federation protocol template is enabled in the application creation wizard.
+     */
+    isWSFedProtocolTemplateEnabled?: boolean;
+     /**
      * Multi-tenancy related configurations.
      */
     multiTenancy: MultiTenancyConfigInterface;
@@ -585,6 +623,30 @@ export interface UIConfigInterface extends CommonUIConfigInterface<FeatureConfig
      * Custom content configurations.
      */
     customContent: CustomContentConfigInterface;
+    /**
+     * Privacy policy URL.
+     */
+    privacyPolicyUrl?: string;
+    /**
+     * Terms of service URL.
+     */
+    termsOfUseUrl?: string;
+    /**
+     * User survey banner configurations.
+     */
+    userSurveyBanner: {
+        buttonText: string;
+        description: string;
+        enabled: boolean;
+        title: string;
+        url: string;
+    };
+    /**
+     * Flow execution configurations.
+     */
+    flowExecution: {
+        enableLegacyFlows: boolean;
+    };
 }
 
 /**
@@ -666,8 +728,10 @@ export interface ServiceResourceEndpointsInterface extends ClaimResourceEndpoint
     PolicyAdministrationEndpointsInterface,
     WorkflowsResourceEndpointsInterface,
     WorkflowAssociationsResourceEndpointsInterface,
+    WorkflowRequestsResourceEndpointsInterface,
     RulesEndpointsInterface,
-    RemoteLoggingResourceEndpointsInterface {
+    RemoteLoggingResourceEndpointsInterface,
+    FlowBuilderCoreResourceEndpointsInterface {
 
     CORSOrigins: string;
     // TODO: Remove this endpoint and use ID token to get the details
@@ -682,7 +746,7 @@ export interface ResourceEndpointsInterface {
 }
 
 export interface RouteConfigInterface {
-    organizationEnabledRoutes: string[];
+    organizationEnabledRoutes: Record<string, string>;
 }
 
 /**

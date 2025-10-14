@@ -16,6 +16,12 @@
             content="width=device-width, initial-scale=1, shrink-to-fit=no"
         />
         <meta name="referrer" content="no-referrer" />
+
+        <!-- Start of loading application configurations -->
+        <script type="text/javascript" src="<%= htmlWebpackPlugin.options.publicPath %>update.config.js"></script>
+        <script type="text/javascript" src="<%= htmlWebpackPlugin.options.publicPath %>config.js"></script>
+        <!-- End of loading application configurations -->
+
         <style>
             #trifacta-pre-loader {
                 display: none;
@@ -168,6 +174,7 @@
             var contextPathGlobal = "<%= htmlWebpackPlugin.options.publicPath %>";
             var serverOriginGlobal = startupConfig.serverUrlGlobal;
             var proxyContextPathGlobal = startupConfig.proxyContextPathGlobal;
+            var isSuperTenantRequiredInUrl = startupConfig.isSuperTenantRequiredInUrl;
             var superTenantGlobal = startupConfig.superTenant;
             var tenantPrefixGlobal = startupConfig.tenantPrefix;
             var isCentralDeploymentEnabled = startupConfig.centralDeploymentEnabled;
@@ -206,6 +213,14 @@
 
                     function getTenantPath(tenantDomain) {
                         var _tenantDomain = tenantDomain ? tenantDomain : getTenantName();
+
+                        if (!_tenantDomain && isSuperTenantRequiredInUrl === "true") {
+                            if (startupConfig.superTenantProxy) {
+                                _tenantDomain = startupConfig.superTenantProxy;
+                            } else {
+                                _tenantDomain = startupConfig.superTenant;
+                            }
+                        }
 
                         return _tenantDomain !== ""
                             ? "/" + startupConfig.tenantPrefix + "/" + _tenantDomain
@@ -295,7 +310,7 @@
                             return applicationDomain.replace(/\/+$/, '');
                         }
 
-                        if (getTenantName() === startupConfig.superTenant) {
+                        if (getTenantName() === startupConfig.superTenant && isSuperTenantRequiredInUrl !== "true") {
                             return applicationDomain.replace(/\/+$/, '') + contextPath
                                 + "<%= htmlWebpackPlugin.options.basename ? '/' + htmlWebpackPlugin.options.basename : ''%>";
                         }
@@ -325,10 +340,10 @@
                     /**
                      * Construct the sign-out redirect URL.
                      *
-                     * @returns {string} Contructed URL.
+                     * @returns {string} Constructed URL.
                      */
                     function getSignOutRedirectURL() {
-                        if (getTenantName() === startupConfig.superTenant) {
+                        if (getTenantName() === startupConfig.superTenant && isSuperTenantRequiredInUrl !== "true") {
                             return applicationDomain.replace(/\/+$/, '');
                         }
 
@@ -491,28 +506,26 @@
                                     .then((response) => {
                                         auth.getDecodedIDToken().then((token) => {
                                             let loginTenant = token["default_tenant"];
-                                            const associatedOrgJson = token["org_user_associations"]?.join(",");
-                                            const orgUserAssociations = associatedOrgJson ? JSON.parse(associatedOrgJson) : undefined;
+                                            const associatedTenants = token["associated_tenants"];
                                             const requestedTenant = localStorage.getItem("user_requested_tenant");
-
                                             localStorage.removeItem("user_requested_tenant");
 
-                                            let loginTenantAssociation;
+                                            let loginTenantDomain;
 
                                             if (requestedTenant) {
-                                                loginTenantAssociation = orgUserAssociations?.find((org) => org.orgHandle === requestedTenant);
-                                                if (loginTenantAssociation) {
+                                                loginTenantDomain = associatedTenants?.includes(requestedTenant) ? requestedTenant : undefined;
+                                                if (loginTenantDomain) {
                                                     loginTenant = requestedTenant;
                                                 }
                                             } else {
-                                                loginTenantAssociation = orgUserAssociations?.find((org) => org.orgHandle === loginTenant);
+                                                loginTenantDomain = associatedTenants?.includes(loginTenant) ? loginTenant : undefined;
                                             }
 
-                                            if (!loginTenantAssociation && orgUserAssociations?.length) {
-                                                loginTenantAssociation = orgUserAssociations[0];
+                                            if (!loginTenantDomain && associatedTenants?.length) {
+                                                loginTenantDomain = associatedTenants[0];
                                             }
 
-                                            if (!loginTenantAssociation) {
+                                            if (!loginTenantDomain) {
                                                 loginTenant = superTenantGlobal;
                                             }
 

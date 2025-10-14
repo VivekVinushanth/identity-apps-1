@@ -38,6 +38,7 @@ export class ActionsConstants {
 
     public static readonly ACTION_NAME_REGEX: RegExp = /^[a-zA-Z0-9-_][a-zA-Z0-9-_ ]*[a-zA-Z0-9-_]$/;
     public static readonly API_HEADER_REGEX: RegExp = /^[a-zA-Z0-9][a-zA-Z0-9-.]+$/;
+    public static readonly REQUEST_PARAMETER_REGEX: RegExp = /[:/?#[\]@]/;
 
     public static readonly ACTIONS_DIR: string = "actions";
     public static readonly TYPES_DIR: string = "types";
@@ -67,6 +68,25 @@ export class ActionsConstants {
     public static readonly PRE_UPDATE_PASSWORD_API_PATH: string = "preUpdatePassword";
     public static readonly PRE_UPDATE_PROFILE_API_PATH: string = "preUpdateProfile";
     public static readonly PRE_REGISTRATION_API_PATH: string = "preRegistration";
+
+    public static readonly ACTIONS_CONFIG_PATHS: Record<string, string> = {
+        [ActionsConstants.PRE_ISSUE_ACCESS_TOKEN_URL_PATH]: "pre_issue_access_token",
+        [ActionsConstants.PRE_UPDATE_PASSWORD_URL_PATH]: "pre_update_password",
+        [ActionsConstants.PRE_UPDATE_PROFILE_URL_PATH]: "pre_update_profile",
+        [ActionsConstants.PRE_REGISTRATION_URL_PATH]: "pre_registration"
+    };
+
+    public static __TEMPORARY__DISALLOWED_RULES: {
+        [key: string]: { [key: string]: string[] };
+    } = {
+            [ActionsConstants.PRE_UPDATE_PASSWORD_URL_PATH]: {
+                "v1": [
+                    "userInitiatedRegistration",
+                    "applicationInitiatedRegistration",
+                    "adminInitiatedRegistration"
+                ]
+            }
+        };
 
     public static readonly ACTION_COMING_SOON_LABEL: string = "COMING_SOON";
 
@@ -159,5 +179,8 @@ export class ActionsConstants {
     public static readonly FEATURE_DICTIONARY: Map<string, string> = new Map<string, string>()
         .set("PRE_ISSUE_ACCESS_TOKEN_RULE", "actions.types.preIssueAccessToken.edit.rule")
         .set("PRE_UPDATE_PASSWORD_RULE", "actions.types.preUpdatePassword.edit.rule")
-        .set("PRE_UPDATE_PROFILE_RULE", "actions.types.preUpdateProfile.edit.rule");
+        .set("PRE_UPDATE_PROFILE_RULE", "actions.types.preUpdateProfile.edit.rule")
+        .set("PRE_ISSUE_ACCESS_TOKEN_HEADERS_AND_PARAMS", "actions.types.list.preIssueAccessToken.headersAndParameters")
+        .set("PRE_UPDATE_PASSWORD_HEADERS_AND_PARAMS", "actions.types.list.preUpdatePassword.headersAndParameters")
+        .set("PRE_UPDATE_PROFILE_HEADERS_AND_PARAMS", "actions.types.list.preUpdateProfile.headersAndParameters");
 }

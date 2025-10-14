@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2022-2024, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2022-2025, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -296,6 +296,7 @@ export class AppConstants {
                 `${ AppConstants.getAdminViewBasePath() }/create-workflow-associations` ],
             [ "APPROVAL_WORKFLOW_ASSOCIATIONS_EDIT",
                 `${ AppConstants.getAdminViewBasePath() }/workflow-associations/:id` ],
+            [ "WORKFLOW_REQUESTS", `${ AppConstants.getAdminViewBasePath() }/workflow-requests` ],
             [ "BRANDING", `${ AppConstants.getDeveloperViewBasePath() }/branding` ],
             [ "CERTIFICATES", `${ AppConstants.getAdminViewBasePath() }/certificates` ],
             [ "CLAIM_DIALECTS", `${ AppConstants.getAdminViewBasePath() }/attributes-and-mappings` ],
@@ -429,6 +430,7 @@ export class AppConstants {
                 `${AppConstants.getAdminViewBasePath()}/actions` ],
             [ "WEBHOOKS",
                 `${AppConstants.getAdminViewBasePath()}/webhooks` ],
+            [ "WEBHOOK_SETTINGS", `${ AppConstants.getDeveloperViewBasePath() }/webhook-settings` ],
             [ "PRE_ISSUE_ACCESS_TOKEN_EDIT",
                 `${AppConstants.getAdminViewBasePath()}/actions/pre-issue-access-token` ],
             [ "PRE_UPDATE_PASSWORD_EDIT",
@@ -437,11 +439,18 @@ export class AppConstants {
                 `${AppConstants.getAdminViewBasePath()}/actions/pre-update-profile` ],
             [ "TENANTS", `${AppConstants.getDefaultLayoutBasePath()}/organizations` ],
             [ "EDIT_TENANT", `${AppConstants.getDefaultLayoutBasePath()}/organizations/:id` ],
+            [ "EDIT_SELF_ORGANIZATION", `${AppConstants.getDefaultLayoutBasePath()}/organizations/self` ],
             [ "SYSTEM_SETTINGS", `${AppConstants.getDefaultLayoutBasePath()}/organizations/system-settings` ],
             [ "POLICY_ADMINISTRATION", `${AppConstants.getAdminViewBasePath()}/policy-administration` ],
             [ "EDIT_POLICY", `${AppConstants.getAdminViewBasePath()}/policy-administration/edit-policy/:id` ],
             [ "MCP_SERVERS", `${ AppConstants.getDeveloperViewBasePath() }/mcp-servers` ],
-            [ "MCP_SERVER_EDIT", `${ AppConstants.getDeveloperViewBasePath() }/mcp-servers/:id` ]
+            [ "MCP_SERVER_EDIT", `${ AppConstants.getDeveloperViewBasePath() }/mcp-servers/:id` ],
+            [ "PASSWORD_RECOVERY_FLOW_BUILDER",
+                `${ AppConstants.getDeveloperViewBasePath() }/edit-password-recovery-flow` ],
+            [ "INVITE_USER_PASSWORD_SETUP_FLOW_BUILDER",
+                `${ AppConstants.getDeveloperViewBasePath() }/edit-invited-user-registration-flow` ],
+            [ "AGENTS", `${AppConstants.getAdminViewBasePath()}/agents` ],
+            [ "AGENT_EDIT", `${ AppConstants.getDeveloperViewBasePath() }/agents/:id` ]
         ]);
 
         return paths;
@@ -498,22 +507,38 @@ export class AppConstants {
     /**
      * Route ids that are enabled in an organization.
      */
-    public static readonly ORGANIZATION_ENABLED_ROUTES: string[] = [
-        "gettingStarted",
-        "identityProviders",
-        "users",
-        "organizations",
-        "groups",
-        "roles",
-        "userRoles",
-        "applications",
-        "emailTemplates",
-        "smsTemplates",
-        "governanceConnectors",
-        "branding",
-        "consoleSettings",
-        "apiResources"
-    ];
+    public static readonly ORGANIZATION_ENABLED_ROUTES: Record<string, string> = {
+        "accountSecurity": "v1.0.0",
+        "actions": "v0.0.0",
+        "admin-forced-password-reset": "v1.0.0",
+        "apiResources": "v0.0.0",
+        "applications": "v0.0.0",
+        "approvalWorkflows": "v0.0.0",
+        "approvals": "v0.0.0",
+        "attributeDialects": "v0.0.0",
+        "branding": "v0.0.0",
+        "consoleSettings": "v0.0.0",
+        "emailTemplates": "v0.0.0",
+        "flows": "v0.0.0",
+        "gettingStarted": "v0.0.0",
+        "governanceConnectors": "v0.0.0",
+        "groups": "v0.0.0",
+        "identityProviders": "v0.0.0",
+        "loginAndRegistration": "v1.0.0",
+        "oidcScopes": "v0.0.0",
+        "organizations": "v0.0.0",
+        "password-recovery": "v1.0.0",
+        "roles": "v0.0.0",
+        "self-registration-connector": "v1.0.0",
+        "smsTemplates": "v0.0.0",
+        "user-email-verification": "v1.0.0",
+        "userRoles": "v0.0.0",
+        "userStores": "v0.0.0",
+        "username-recovery": "v1.0.0",
+        "users": "v0.0.0",
+        "workflowInstanceDetails": "v0.0.0",
+        "workflowInstances": "v0.0.0"
+    };
 
     /**
      * Organization-management-related route ids
@@ -545,6 +570,11 @@ export class AppConstants {
      * Route id of the console settings page.
      */
     public static readonly CONSOLE_SETTINGS_ROUTE: string = "consoleSettings";
+
+    /**
+     * Route id of the console settings page.
+     */
+    public static readonly AGENTS_ROUTE: string = "agents";
 
     /**
      * Name of the root node

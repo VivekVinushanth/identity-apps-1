@@ -17,6 +17,10 @@
  */
 export interface ClaimsNS {
     attributeMappings: {
+        agent: {
+            heading: string;
+            description: string
+        };
         axschema: {
             heading: string;
             description: string;
@@ -170,6 +174,10 @@ export interface ClaimsNS {
                     heading: string;
                     description: string;
                 };
+                agent: {
+                    heading: string;
+                    description: string;
+                }
             };
         };
         confirmations: {
@@ -526,6 +534,8 @@ export interface ClaimsNS {
                     decimal: string;
                     boolean: string;
                     dateTime: string;
+                    date: string;
+                    epoch: string;
                     object: string;
                 };
             };
@@ -640,6 +650,7 @@ export interface ClaimsNS {
                     local: string;
                     dialect: string;
                     external: string;
+                    readOnlyDialect: string;
                 };
                 subtitle: string;
                 action: {

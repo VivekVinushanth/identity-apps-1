@@ -161,12 +161,14 @@ export const applicationConfig: ApplicationConfig = {
             ApplicationManagementConstants.CLIENT_CREDENTIALS_GRANT,
             ApplicationManagementConstants.IMPLICIT_GRANT,
             ApplicationManagementConstants.REFRESH_TOKEN_GRANT,
-            ApplicationManagementConstants.OAUTH2_TOKEN_EXCHANGE
+            ApplicationManagementConstants.OAUTH2_TOKEN_EXCHANGE,
+            ApplicationManagementConstants.ORGANIZATION_SWITCH_GRANT
         ],
         [ "react-application" ]: [
             ApplicationManagementConstants.AUTHORIZATION_CODE_GRANT,
             ApplicationManagementConstants.IMPLICIT_GRANT,
-            ApplicationManagementConstants.REFRESH_TOKEN_GRANT
+            ApplicationManagementConstants.REFRESH_TOKEN_GRANT,
+            ApplicationManagementConstants.ORGANIZATION_SWITCH_GRANT
         ],
         [ "sub-organization-application" ]: [
             ApplicationManagementConstants.REFRESH_TOKEN_GRANT,
@@ -190,7 +192,11 @@ export const applicationConfig: ApplicationConfig = {
                 return allowedTemplates.includes(templateId);
             },
             isMandateLinkedLocalAccountEnabled: (templateId: string): boolean => {
-                const allowedTemplates: string[] = [];
+                const allowedTemplates: string[] = [
+                    ApplicationManagementConstants.MOBILE,
+                    ApplicationManagementConstants.CUSTOM_APPLICATION_OIDC,
+                    ApplicationManagementConstants.TRADITIONAL_WEB_APPLICATION_OIDC
+                ];
 
                 return allowedTemplates.includes(templateId);
             },
@@ -218,12 +224,12 @@ export const applicationConfig: ApplicationConfig = {
         roleMapping: true
     },
     customApplication: {
-        allowedProtocolTypes: [
-            SupportedAuthProtocolTypes.OAUTH2_OIDC,
-            SupportedAuthProtocolTypes.SAML,
-            SupportedAuthProtocolTypes.WS_FEDERATION
-        ],
-        defaultTabIndex: 1
+        defaultTabIndex: 1,
+        getAllowedProtocolTypes: (): string[] => {
+            return [ SupportedAuthProtocolTypes.OAUTH2_OIDC,
+                SupportedAuthProtocolTypes.SAML,
+                SupportedAuthProtocolTypes.WS_FEDERATION ];
+        }
     },
     editApplication: {
         extendTabs: false,
@@ -327,6 +333,7 @@ export const applicationConfig: ApplicationConfig = {
                             <ResourceTab.Pane controlledSegmentation>
                                 <ApplicationRoles
                                     onUpdate={ onApplicationUpdate }
+                                    originalTemplateId={ application?.originalTemplateId }
                                     readOnly={ isReadOnly || application?.advancedConfigurations?.fragment }
                                 />
                             </ResourceTab.Pane>

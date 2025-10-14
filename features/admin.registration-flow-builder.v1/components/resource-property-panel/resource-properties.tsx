@@ -22,7 +22,7 @@ import {
     CommonResourcePropertiesPropsInterface
 } from "@wso2is/admin.flow-builder-core.v1/components/resource-property-panel/resource-properties";
 import { FieldKey, FieldValue } from "@wso2is/admin.flow-builder-core.v1/models/base";
-import { Element, ElementCategories } from "@wso2is/admin.flow-builder-core.v1/models/elements";
+import { Element, ElementCategories, ElementTypes } from "@wso2is/admin.flow-builder-core.v1/models/elements";
 import { Resource } from "@wso2is/admin.flow-builder-core.v1/models/resources";
 import { StepCategories, StepTypes } from "@wso2is/admin.flow-builder-core.v1/models/steps";
 import { IdentifiableComponentInterface } from "@wso2is/core/models";
@@ -32,7 +32,9 @@ import ButtonExtendedProperties from "./extended-properties/button-extended-prop
 import FieldExtendedProperties from "./extended-properties/field-extended-properties";
 import RulesProperties from "./nodes/rules-properties";
 import ResourcePropertyFactory from "./resource-property-factory";
-import FederationProperties from "./steps/redirection/federation-properties";
+import FlowCompletionProperties from "./steps/end/flow-completion-properties";
+import FederationProperties from "./steps/execution/federation-properties";
+import RegistrationFlowBuilderConstants from "../../constants/registration-flow-builder-constants";
 
 /**
  * Props interface of {@link ResourceProperties}
@@ -107,6 +109,21 @@ const ResourceProperties: FunctionComponent<ResourcePropertiesPropsInterface> = 
     };
 
     switch (resource.category) {
+        case StepCategories.Interface:
+            if (resource.type === StepTypes.End) {
+                return (
+                    <>
+                        { renderElementId() }
+                        <FlowCompletionProperties
+                            resource={ resource }
+                            data-componentid="field-extended-properties"
+                            onChange={ onChange }
+                        />
+                    </>
+                );
+            }
+
+            break;
         case ElementCategories.Field:
             return (
                 <>
@@ -123,12 +140,15 @@ const ResourceProperties: FunctionComponent<ResourcePropertiesPropsInterface> = 
             return (
                 <>
                     { renderElementId() }
-                    <ButtonExtendedProperties
-                        resource={ resource }
-                        data-componentid="button-extended-properties"
-                        onChange={ onChange }
-                        onVariantChange={ onVariantChange }
-                    />
+                    { resource.type === ElementTypes.Button && (
+                        <ButtonExtendedProperties
+                            resource={ resource }
+                            data-componentid="button-extended-properties"
+                            onChange={ onChange }
+                            onVariantChange={ onVariantChange }
+                        />
+                    )
+                    }
                     { renderElementPropertyFactory() }
                 </>
             );
@@ -145,11 +165,20 @@ const ResourceProperties: FunctionComponent<ResourcePropertiesPropsInterface> = 
             break;
         case StepCategories.Workflow:
             return (
-                <FederationProperties
-                    resource={ resource }
-                    data-componentid="federation-properties"
-                    onChange={ onChange }
-                />
+                <>
+                    { renderElementId() }
+                    {
+                        !RegistrationFlowBuilderConstants.FEDERATION_CONFIG_SKIPPED_EXECUTORS.includes(
+                            resource?.data?.action?.executor?.name) && (
+                            <FederationProperties
+                                resource={ resource }
+                                data-componentid="federation-properties"
+                                onChange={ onChange }
+                            />
+                        )
+                    }
+                    { renderElementPropertyFactory() }
+                </>
             );
         default:
             return (

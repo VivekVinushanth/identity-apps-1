@@ -19,7 +19,8 @@
 import {
     DatabaseDocumentIcon,
     PaletteIcon,
-    SquareUserIcon
+    SquareUserIcon,
+    UserFlowIcon
 } from "@oxygen-ui/react-icons";
 import { FeatureStatus } from "@wso2is/access-control";
 import FeatureGateConstants from "@wso2is/admin.feature-gate.v1/constants/feature-gate-constants";
@@ -248,7 +249,7 @@ export class RouteUtils {
      * @returns
      */
     public static filterOrganizationEnabledRoutes(routes: RouteInterface[]): RouteInterface[] {
-        return routes.filter((route: RouteInterface) => AppConstants.ORGANIZATION_ENABLED_ROUTES.includes(route.id));
+        return routes.filter((route: RouteInterface) => route.id in AppConstants.ORGANIZATION_ENABLED_ROUTES);
     }
 
     public static filterOutOrganizationOnlyRoutes(routes: RouteInterface[]): RouteInterface[] {
@@ -272,6 +273,13 @@ export class RouteUtils {
             id: "userAttributesAndStores",
             name: "User Attributes & Stores",
             order: 2
+        };
+
+        const workflows: Omit<RouteInterface, "showOnSidePanel"> = {
+            icon: UserFlowIcon,
+            id: "workflows",
+            name: "Workflows",
+            order: 3
         };
 
         const resourceServers: Omit<RouteInterface, "showOnSidePanel"> = {
@@ -300,11 +308,6 @@ export class RouteUtils {
         const manage: NavCategory = {
             id: "manage",
             order: 2
-        };
-
-        const workflows: NavCategory = {
-            id: "workflows",
-            order: 3
         };
 
         const organizations: NavCategory = {
@@ -395,8 +398,17 @@ export class RouteUtils {
             },
             {
                 category: workflows,
-                id: "workflows",
+                id: "approvalWorkflows",
+                order: 8,
+                parent: workflows,
                 selected: history.location.pathname.includes("/workflows")
+            },
+            {
+                category: workflows,
+                id: "workflowInstances",
+                order: 9,
+                parent: workflows,
+                selected: history.location.pathname.includes("/workflow-requests")
             },
             {
                 category: manage,
@@ -407,7 +419,7 @@ export class RouteUtils {
             {
                 category: manage,
                 id: "groups",
-                order: 1,
+                order: 2,
                 parent: userManagement
             },
             {
@@ -419,13 +431,13 @@ export class RouteUtils {
             {
                 category: manage,
                 id: "userRoles",
-                order: 2,
+                order: 3,
                 parent: userManagement
             },
             {
                 category: manage,
                 id: "userV1Roles",
-                order: 2,
+                order: 3,
                 parent: userManagement
             },
             {
@@ -433,6 +445,12 @@ export class RouteUtils {
                 id: "roles",
                 order: 2,
                 parent: userManagement
+            },
+            {
+                category: manage,
+                id: "agents",
+                order: 1,
+                selected: history.location.pathname.includes("/agents")
             },
             {
                 category: manage,
@@ -477,7 +495,7 @@ export class RouteUtils {
             {
                 category: preferences,
                 id: "flows",
-                selected: history.location.pathname.includes("flows")
+                selected: history.location.pathname.includes("/flows")
             },
             {
                 category: preferences,

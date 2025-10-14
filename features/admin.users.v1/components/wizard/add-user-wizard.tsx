@@ -17,6 +17,7 @@
  */
 
 // Keep statement as this to avoid cyclic dependency. Do not import from config index.
+import { useGetWorkflowAssociations } from "@wso2is/admin.approval-workflows.v1/api/use-get-workflow-associations";
 import { AppState } from "@wso2is/admin.core.v1/store";
 import { userConfig } from "@wso2is/admin.extensions.v1";
 import { administratorConfig } from "@wso2is/admin.extensions.v1/configs/administrator";
@@ -26,6 +27,10 @@ import { userstoresConfig } from "@wso2is/admin.extensions.v1/configs/userstores
 import { updateGroupDetails, useGroupList } from "@wso2is/admin.groups.v1/api/groups";
 import { GroupsInterface } from "@wso2is/admin.groups.v1/models/groups";
 import { useGetCurrentOrganizationType } from "@wso2is/admin.organizations.v1/hooks/use-get-organization-type";
+import {
+    ServerConfigurationsConstants
+} from "@wso2is/admin.server-configurations.v1";
+import { useGetGovernanceConnectorById } from "@wso2is/admin.server-configurations.v1/api/governance-connectors";
 import useUserStores from "@wso2is/admin.userstores.v1/hooks/use-user-stores";
 import { UserStoreListItem } from "@wso2is/admin.userstores.v1/models";
 import { useValidationConfigData } from "@wso2is/admin.validation.v1/api";
@@ -53,13 +58,15 @@ import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 import { Dispatch } from "redux";
 import { Grid, Icon, Modal } from "semantic-ui-react";
-import { AddUserUpdated } from "./steps/add-user-basic";
+import { AddUserBasic } from "./steps/add-user-basic/add-user-basic";
 import { AddUserGroups } from "./steps/add-user-groups";
+import { LegacyAddUser } from "./steps/legacy-add-user-basic";
 import { AddUserWizardSummary } from "./user-wizard-summary";
 import { addUser } from "../../api";
 import { getUserWizardStepIcons } from "../../configs";
 import {
     PasswordOptionTypes,
+    UserFeatureDictionaryKeys,
     UserManagementConstants,
     WizardStepsFormTypes
 } from "../../constants";
@@ -143,6 +150,7 @@ export const AddUserWizard: FunctionComponent<AddUserWizardPropsInterface> = (
     const [ isStepsUpdated, setIsStepsUpdated ] = useState<boolean>(false);
     const [ askPasswordFromUser, setAskPasswordFromUser ] = useState<boolean>(true);
     const [ passwordOption, setPasswordOption ] = useState<PasswordOptionTypes>(userConfig.defaultPasswordOption);
+    const [ askPasswordOption, setAskPasswordOption ] = useState<string>(userConfig.defautlAskPasswordOption);
     const [ isOfflineUser, setOfflineUser ] = useState<boolean>(false);
     const [ wizardSteps, setWizardSteps ] = useState<WizardStepInterface[]>([]);
     const [ selectedUserStore, setSelectedUserStore ] =
@@ -151,6 +159,11 @@ export const AddUserWizard: FunctionComponent<AddUserWizardPropsInterface> = (
     const [ newUserId, setNewUserId ] = useState<string>("");
     const [ submitStep, setSubmitStep ] = useState<WizardStepsFormTypes>(undefined);
     const [ selectedGroupsList, setSelectedGroupList ] = useState<GroupsInterface[]>([]);
+
+    const isLegacyUserAddWizardEnabled: boolean = isFeatureEnabled(
+        userFeatureConfig,
+        UserManagementConstants.FEATURE_DICTIONARY.get(UserFeatureDictionaryKeys.UserLegacyAddUser)
+    );
 
     const isAttributeProfileForUserCreationEnabled: boolean = isFeatureEnabled(
         userFeatureConfig,
@@ -164,6 +177,22 @@ export const AddUserWizard: FunctionComponent<AddUserWizardPropsInterface> = (
     } = useValidationConfigData();
 
     const {
+        data: askPasswordConnectorDetails
+    } = useGetGovernanceConnectorById(
+        ServerConfigurationsConstants.USER_ONBOARDING_CONNECTOR_ID,
+        ServerConfigurationsConstants.ASK_PASSWORD_CONNECTOR_ID
+    );
+
+    const {
+        data: workflowAssociationDetails,
+        isLoading: isWorkflowAssociationDetailsRequestLoading,
+        error: workflowAssociationDetailsRequestError
+    } = useGetWorkflowAssociations(null, null, "operation eq ADD_USER");
+
+    const hasWorkflowAssociations: boolean = !isWorkflowAssociationDetailsRequestLoading &&
+        !workflowAssociationDetailsRequestError && ((workflowAssociationDetails?.totalResults ?? 0) > 0);
+
+    const {
         data: originalGroupList,
         error: groupListFetchRequestError
     } = useGroupList(
@@ -171,7 +200,8 @@ export const AddUserWizard: FunctionComponent<AddUserWizardPropsInterface> = (
         null,
         null,
         selectedUserStore,
-        excludedAttributes
+        excludedAttributes,
+        !hasWorkflowAssociations
     );
 
     const fixedGroupList: GroupsInterface[] = useMemo(() => {
@@ -237,6 +267,10 @@ export const AddUserWizard: FunctionComponent<AddUserWizardPropsInterface> = (
             return;
         }
 
+        if (isWorkflowAssociationDetailsRequestLoading) {
+            return;
+        }
+
         const wizardStepArray: WizardStepInterface[] = [];
 
         // The user is created in the organization.
@@ -259,7 +293,9 @@ export const AddUserWizard: FunctionComponent<AddUserWizardPropsInterface> = (
         setIsStepsUpdated(true);
     }, [
         fixedGroupList,
-        isUserSummaryEnabled
+        isUserSummaryEnabled,
+        isWorkflowAssociationDetailsRequestLoading,
+        wizardState
     ]);
 
     /**
@@ -290,6 +326,23 @@ export const AddUserWizard: FunctionComponent<AddUserWizardPropsInterface> = (
             message: t("console:manage.features.groups.notifications.fetchGroups.genericError.message")
         }));
     }, [ groupListFetchRequestError ]);
+
+    /**
+     * Show an alert if fetching workflow association details fails.
+     */
+    useEffect(() => {
+        if (workflowAssociationDetailsRequestError) {
+            dispatch(
+                addAlert({
+                    description: t(
+                        "approvalWorkflows:notifications.fetchWorkflowAssociations.genericError.description"
+                    ),
+                    level: AlertLevels.ERROR,
+                    message: t("approvalWorkflows:notifications.fetchWorkflowAssociations.genericError.message")
+                })
+            );
+        }
+    }, [ workflowAssociationDetailsRequestError ]);
 
     const resolveSelectedUserstoreId = (): string => {
         let selectedUserstoreId: string = userstoresConfig.primaryUserstoreId;
@@ -503,7 +556,7 @@ export const AddUserWizard: FunctionComponent<AddUserWizardPropsInterface> = (
             }, "passwordOption", "newPassword", "userType", "domain", "firstName", "lastName");
 
             // If email value is not present, use the emails value.
-            if (isEmpty(userInfo?.email) && userInfo?.emails.length > 0) {
+            if (isEmpty(userInfo?.email) && userInfo?.emails?.length > 0) {
                 delete combinedUserDetails.email;
 
                 // Primary will be the string value in the emails array.
@@ -594,6 +647,19 @@ export const AddUserWizard: FunctionComponent<AddUserWizardPropsInterface> = (
                         level: AlertLevels.ERROR,
                         message: t(
                             "users:notifications.addUser.error.message"
+                        )
+                    }));
+                } else if (error.response && error.response.status === 400
+                    && error.response.data && error.response.data.detail) {
+                    closeWizard();
+                    dispatch(addAlert({
+                        description: t(
+                            "users:notifications.addUser.badRequestError.description",
+                            { description: error.response.data.detail }
+                        ),
+                        level: AlertLevels.ERROR,
+                        message: t(
+                            "users:notifications.addUser.badRequestError.message"
                         )
                     }));
                 } else if (error.response && error.response.status === 403 &&
@@ -738,10 +804,45 @@ export const AddUserWizard: FunctionComponent<AddUserWizardPropsInterface> = (
      * @returns Basic details wizard step.
      */
     const getUserBasicWizardStep = (): WizardStepInterface => {
+        // Improved user basic details form has been introduced with claim input format support
+        // and react-final-form.
+        if (isLegacyUserAddWizardEnabled) {
+            return {
+                content: (
+                    <LegacyAddUser
+                        triggerSubmit={ submitGeneralSettings }
+                        initialValues={ wizardState && wizardState[ WizardStepsFormTypes.BASIC_DETAILS ] }
+                        emailVerificationEnabled={ emailVerificationEnabled }
+                        onSubmit={ (values: AddUserWizardStateInterface) =>
+                            handleWizardFormSubmit(values, WizardStepsFormTypes.BASIC_DETAILS) }
+                        requestedPasswordOption={ wizardState &&
+                        wizardState[ WizardStepsFormTypes.BASIC_DETAILS ]?.passwordOption }
+                        isUserstoreRequired={ false }
+                        passwordOption={ passwordOption }
+                        setPasswordOption={ setPasswordOption }
+                        setUserSummaryEnabled={ setUserSummaryEnabled }
+                        setAskPasswordFromUser={ setAskPasswordFromUser }
+                        setOfflineUser={ setOfflineUser }
+                        selectedUserStore={ selectedUserStore }
+                        setSelectedUserStore = { setSelectedUserStore }
+                        isBasicDetailsLoading={ isBasicDetailsLoading }
+                        setBasicDetailsLoading={ setBasicDetailsLoading }
+                        validationConfig ={ validationData }
+                        selectedUserStoreId={ resolveSelectedUserstoreId() }
+                        connectorProperties={ askPasswordConnectorDetails?.properties }
+                    />
+                ),
+                icon: getUserWizardStepIcons().general,
+                name: WizardStepsFormTypes.BASIC_DETAILS,
+                title: t("user:modals.addUserWizard.steps.basicDetails")
+            };
+        }
+
         return {
             content: (
-                <AddUserUpdated
+                <AddUserBasic
                     triggerSubmit={ submitGeneralSettings }
+                    setTriggerSubmit={ setSubmitGeneralSettings }
                     initialValues={ wizardState && wizardState[ WizardStepsFormTypes.BASIC_DETAILS ] }
                     emailVerificationEnabled={ emailVerificationEnabled }
                     onSubmit={ (values: AddUserWizardStateInterface) =>
@@ -760,6 +861,10 @@ export const AddUserWizard: FunctionComponent<AddUserWizardPropsInterface> = (
                     setBasicDetailsLoading={ setBasicDetailsLoading }
                     validationConfig ={ validationData }
                     selectedUserStoreId={ resolveSelectedUserstoreId() }
+                    connectorProperties={ askPasswordConnectorDetails?.properties }
+                    hasWorkflowAssociations={ hasWorkflowAssociations }
+                    askPasswordOption={ askPasswordOption }
+                    setAskPasswordOption={ setAskPasswordOption }
                 />
             ),
             icon: getUserWizardStepIcons().general,
@@ -807,6 +912,7 @@ export const AddUserWizard: FunctionComponent<AddUserWizardPropsInterface> = (
                     }
                     password={ wizardState && wizardState[ WizardStepsFormTypes.BASIC_DETAILS ]?.newPassword }
                     isPasswordBased={ askPasswordFromUser }
+                    hasWorkflowAssociations={ hasWorkflowAssociations }
                 />
             ),
             icon: getUserWizardStepIcons().summary,
@@ -855,6 +961,17 @@ export const AddUserWizard: FunctionComponent<AddUserWizardPropsInterface> = (
         );
     };
 
+    const isValidPasswordOptionProvided = (): boolean => {
+        if (passwordOption === null) {
+            return false;
+        }
+        if (passwordOption === PasswordOptionTypes.ASK_PASSWORD && askPasswordOption === null) {
+            return false;
+        }
+
+        return true;
+    };
+
     const handleModalAction = (): ReactElement => {
         return (
             <Modal.Actions>
@@ -900,7 +1017,7 @@ export const AddUserWizard: FunctionComponent<AddUserWizardPropsInterface> = (
                                     floated="right"
                                     onClick={ navigateToNext }
                                     loading={ isSubmitting }
-                                    disabled={ isSubmitting }
+                                    disabled={ isSubmitting || !isValidPasswordOptionProvided() }
                                 >
                                     { resolveWizardPrimaryButtonText() }
                                 </PrimaryButton>

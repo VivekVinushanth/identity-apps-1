@@ -30,6 +30,10 @@ export const pages: pagesNS = {
         subTitle: null,
         title: "Add New Template"
     },
+    agents: {
+        subTitle: "Configure and manage AI agent identities for your organizaton",
+        title: "Agents"
+    },
     approvalWorkflows: {
         subTitle: "Create and manage approval workflows.",
         title: "Approval Workflows"
@@ -132,5 +136,9 @@ export const pages: pagesNS = {
     webhooks: {
         subTitle: "Create webhooks to notify external services when certain events happen.",
         title: "Webhooks"
-    }
+    },
+    workflowRequestsPage: {
+        subTitle: "View and manage workflow requests.",
+        title: "Workflow Requests"
+    },
 };

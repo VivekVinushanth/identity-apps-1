@@ -20,6 +20,14 @@
 import { SCIMConfigs } from "@wso2is/admin.extensions.v1/configs/scim";
 
 /**
+ * Keys used in feature dictionary.
+ */
+export enum ClaimFeatureDictionaryKeys {
+    MobileVerificationByPrivilegedUsers = "MOBILE_VERIFICATION_BY_PRIVILEGED_USERS",
+    HideUserIdDisplayConfigurations = "HIDE_USER_ID_DISPLAY_CONFIGURATIONS"
+}
+
+/**
  * Class containing claim constants.
  */
 export class ClaimManagementConstants {
@@ -35,7 +43,14 @@ export class ClaimManagementConstants {
      * Set of keys used to enable/disable features.
      */
     public static readonly FEATURE_DICTIONARY: Map<string, string> = new Map<string, string>()
-        .set("MOBILE_VERIFICATION_BY_PRIVILEGED_USERS", "attributeVerification.mobileVerificationByPrivilegedUser");
+        .set(
+            ClaimFeatureDictionaryKeys.MobileVerificationByPrivilegedUsers,
+            "attributeVerification.mobileVerificationByPrivilegedUser"
+        )
+        .set(
+            ClaimFeatureDictionaryKeys.HideUserIdDisplayConfigurations,
+            "attributeDialects.userID.general.hideDisplayConfigurations"
+        );
 
     /**
      * Claim URI Attribute key.
@@ -105,7 +120,8 @@ export class ClaimManagementConstants {
         .set("SCIM2_SCHEMAS_EXT_ENT_USER",
             "dXJuOmlldGY6cGFyYW1zOnNjaW06c2NoZW1hczpleHRlbnNpb246ZW50ZXJwcmlzZToyLjA6VXNlcg")
         .set("SCIM_SCHEMAS_CORE", "dXJuOnNjaW06c2NoZW1hczpjb3JlOjEuMA")
-        .set("SCIM2_SCHEMAS_EXT_SYSTEM", "dXJuOnNjaW06d3NvMjpzY2hlbWE");
+        .set("SCIM2_SCHEMAS_EXT_SYSTEM", "dXJuOnNjaW06d3NvMjpzY2hlbWE")
+        .set("SCIM2_FOR_AGENTS", "dXJuOnNjaW06d3NvMjphZ2VudDpzY2hlbWE");
 
     /**
      * Set of dialects packed OOTB.
@@ -132,7 +148,8 @@ export class ClaimManagementConstants {
         ClaimManagementConstants.ATTRIBUTE_DIALECT_IDS.get("SCIM2_SCHEMAS_EXT_ENT_USER"),
         ClaimManagementConstants.ATTRIBUTE_DIALECT_IDS.get("SCIM_SCHEMAS_CORE"),
         ClaimManagementConstants.ATTRIBUTE_DIALECT_IDS.get("XML_SOAP"),
-        ClaimManagementConstants.ATTRIBUTE_DIALECT_IDS.get("SCIM2_SCHEMAS_EXT_SYSTEM")
+        ClaimManagementConstants.ATTRIBUTE_DIALECT_IDS.get("SCIM2_SCHEMAS_EXT_SYSTEM"),
+        ClaimManagementConstants.ATTRIBUTE_DIALECT_IDS.get("SCIM2_FOR_AGENTS")
     ];
 
     public static readonly CUSTOM_MAPPING: string = SCIMConfigs.custom;
@@ -141,12 +158,17 @@ export class ClaimManagementConstants {
         SCIMConfigs.oidc
     ];
 
+    public static readonly AGENT_SCIM_SCHEMA_MAPPING: string[] = [
+        "urn:scim:wso2:agent:schema"
+    ];
+
     public static readonly AXSCHEMA_MAPPING: string = "http://axschema.org";
 
     public static readonly OIDC: string = "oidc";
     public static readonly SCIM: string = "scim";
     public static readonly AXSCHEMA: string = "axschema";
     public static readonly EIDAS: string = "eidas";
+    public static readonly AGENT: string = "agent";
     public static readonly OTHERS: string = "others";
 
     public static readonly SCIM_TABS: {
@@ -184,6 +206,12 @@ export class ClaimManagementConstants {
                 isAttributeButtonEnabled: true,
                 name: "Core 1.0 Schema",
                 uri: "urn:scim:schemas:core:1.0"
+            },
+            {
+                attributeButtonText: "",
+                isAttributeButtonEnabled: true,
+                name: "Agent Schema",
+                uri: "urn:scim:wso2:agent:schema"
             }
         ];
 
@@ -211,6 +239,8 @@ export class ClaimManagementConstants {
     public static readonly MOBILE_CLAIM_URI: string = "http://wso2.org/claims/mobile";
     public static readonly MOBILE_NUMBERS_CLAIM_URI: string = "http://wso2.org/claims/mobileNumbers";
     public static readonly VERIFIED_MOBILE_NUMBERS_CLAIM_URI: string = "http://wso2.org/claims/verifiedMobileNumbers";
+    public static readonly FIRST_NAME_CLAIM_URI: string = "http://wso2.org/claims/givenname";
+    public static readonly LAST_NAME_CLAIM_URI: string = "http://wso2.org/claims/lastname";
 
     public static readonly GROUPS_CLAIM_NAME: string = "groups";
     public static readonly ROLES_CLAIM_NAME: string = "roles";
@@ -228,6 +258,8 @@ export class ClaimManagementConstants {
 
     public static readonly SYSTEM_CLAIM_PROPERTY_NAME: string = "isSystemClaim";
 
+    public static readonly AGENT_CLAIM_PROPERTY_NAME: string = "isAgentClaim";
+
     /**
      * Claim property name for uniqueness validation scope.
      */
@@ -241,7 +273,7 @@ export class ClaimManagementConstants {
     /**
      * List of restricted property keys that cannot be used in claim properties.
      */
-    public static readonly RESTRICTED_PROPERTY_KEYS: string[] = [ "isUnique" ];
+    public static readonly RESTRICTED_PROPERTY_KEYS: string[] = [ "isUnique", "isAgentClaim" ];
 
     /**
      * The error code that is returned when there is no item in the list

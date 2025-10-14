@@ -530,7 +530,13 @@ export interface ApplicationsNS {
                                 accordion: {
                                     title: {
                                         description: string;
-                                        heading: string;
+                                        heading: {
+                                            readOnly: string;
+                                            readWrite: string;
+                                        };
+                                        tooltip: {
+                                            readOnly: string;
+                                        };
                                     };
                                 };
                                 conditionalAuthTour: {
@@ -700,6 +706,10 @@ export interface ApplicationsNS {
                                 totp: {
                                     description: string;
                                     heading: string;
+                                    info: {
+                                        totpWithIdentifierFirstEnabled: string;
+                                        totpWithIdentifierFirstEnabledMessage: string;
+                                    };
                                 };
                                 usernameless: {
                                     description: string;
@@ -742,6 +752,20 @@ export interface ApplicationsNS {
                                     heading: string;
                                 };
                             };
+                            validation: {
+                                smsOTPRequiresMobileField: {
+                                    message: string;
+                                };
+                                emailOTPRequiresEmailField: {
+                                    message: string;
+                                };
+                                passwordRecoveryRequiresFactors: {
+                                    message: string;
+                                };
+                                passwordExecutorRequired: {
+                                    message: string;
+                                };
+                            }
                         };
                     };
                     requestPathAuthenticators: {
@@ -778,6 +802,18 @@ export interface ApplicationsNS {
                 };
             };
             sharedAccess: {
+                title: string;
+                sharedRoles: string;
+                sharingSettings: string;
+                doNotShareApplication: string;
+                shareAllApplication: string;
+                shareSelectedApplication: string;
+                allRolesAndOrgsSharingMessage: string;
+                allRolesAndOrgsNotSharingMessage: string;
+                selectAnOrganizationToMangage: string;
+                allRolesSharingMessage: string;
+                doNotShareRolesWithAllOrgs: string;
+                toManageOrganizationSelectLeftPanel: string;
                 subTitle: string;
                 tabName: string;
                 sharedAccessStatusOptions: {
@@ -785,7 +821,83 @@ export interface ApplicationsNS {
                     success: string;
                     failed: string;
                     partiallyCompleted: string;
-                }
+                };
+                shareTypeSwitchModal: {
+                    header: string;
+                    message: string;
+                    description: string;
+                    preserveStateLabel1: string;
+                    resetToDefaultLabel1: string;
+                    preserveStateLabel2: string;
+                    resetToDefaultLabel2: string;
+                };
+                showShareAllWarningModal: {
+                    header: string;
+                    message: string;
+                    description: string;
+                    assertionHint: string;
+                };
+                orgNotSelectedForRoleSharing: string;
+                individualRoleSharingLabel: string;
+                individualRoleSharingHint: string;
+                commonRoleSharingLabel: string;
+                commonRoleSharingHint: string;
+                noRolesAvailableForOrg: string;
+                noSharedOrgs: string;
+                rolesSharedPartially: string;
+                shareRoleSubsetWithSelectedOrgs: string;
+                shareRoleSubsetWithAllOrgs: string;
+                searchAvailableRolesPlaceholder: string;
+                manageRoleSharing: string;
+                viewRoleSharing: string;
+                selectAnOrganizationToViewRoles: string;
+                shareAllRoles: string;
+                shareSelectedRoles: string;
+                doNotShareRoles: string;
+                notifications: {
+                    fetchApplicationOrgTree: {
+                        genericError: {
+                            message: string;
+                            description: string;
+                        };
+                    };
+                    fetchOrganizations: {
+                        genericError: {
+                            message: string;
+                            description: string;
+                        };
+                    };
+                    fetchApplicationRoles: {
+                        genericError: {
+                            message: string;
+                            description: string;
+                        };
+                    };
+                    unshare: {
+                        success: {
+                            message: string;
+                            description: string;
+                        };
+                        error: {
+                            message: string;
+                            description: string;
+                        };
+                    };
+                    share: {
+                        success: {
+                            message: string;
+                            description: string;
+                        };
+                        error: {
+                            message: string;
+                            description: string;
+                        };
+                    };
+                    noRolesSelected: {
+                        description: string;
+                        message: string;
+                    };
+                };
             };
             shareApplication: {
                 heading: string;
@@ -868,6 +980,7 @@ export interface ApplicationsNS {
                 }
             };
             apiAuthorization: {
+                limitedAccessMessage: string;
                 m2mPolicyMessage: string;
             };
             roles: {
@@ -897,6 +1010,7 @@ export interface ApplicationsNS {
                         mandateLocalAccount: {
                             hint: string;
                             label: string;
+                            unifiedHint: string;
                         };
                     };
                 };
@@ -1543,6 +1657,11 @@ export interface ApplicationsNS {
                             },
                             version200: {
                                 addAllRequestedClaimsInJWTAccessToken: {
+                                    instruction: string;
+                                }
+                            },
+                            version300: {
+                                linkedLocalAccountAttributeHandling: {
                                     instruction: string;
                                 }
                             }

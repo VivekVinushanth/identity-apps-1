@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-2024, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2023-2025, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -17,6 +17,9 @@
  */
 
 import { BasicUserInfo } from "@asgardeo/auth-react";
+import Breadcrumbs from "@oxygen-ui/react/Breadcrumbs";
+import Typography from "@oxygen-ui/react/Typography/Typography";
+import { BuildingAltIcon, CloneIcon } from "@oxygen-ui/react-icons";
 import { Show, useRequiredScopes } from "@wso2is/access-control";
 import useSignIn from "@wso2is/admin.authentication.v1/hooks/use-sign-in";
 import { getEmptyPlaceholderIllustrations } from "@wso2is/admin.core.v1/configs/ui";
@@ -53,11 +56,17 @@ import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 import { Dispatch } from "redux";
 import { Header, Icon, Label, SemanticICONS } from "semantic-ui-react";
-import { deleteOrganization } from "../api";
+import { deleteOrganization, getOrganization } from "../api";
 import { OrganizationIcon } from "../configs";
 import { OrganizationManagementConstants } from "../constants";
 import useOrganizationSwitch from "../hooks/use-organization-switch";
-import { GenericOrganization, OrganizationInterface, OrganizationListInterface } from "../models";
+import {
+    GenericOrganization,
+    OrganizationAncestorPathSegmentInterface,
+    OrganizationInterface,
+    OrganizationListInterface,
+    OrganizationResponseInterface
+} from "../models";
 import "./organization-list.scss";
 
 /**
@@ -170,7 +179,12 @@ export const OrganizationList: FunctionComponent<OrganizationListPropsInterface>
     const [ showDeleteConfirmationModal, setShowDeleteConfirmationModal ] = useState<boolean>(false);
     const [ deletingOrganization, setDeletingOrganization ] = useState<OrganizationInterface>(undefined);
 
+    const [ selectedOrgDetails, setSelectedOrgDetails ] = useState(null);
+    const [ selectedOrgId, setSelectedOrgId ] = useState(null);
+
     const eventPublisher: EventPublisher = EventPublisher.getInstance();
+
+    const isOrgHandleFeatureEnabled: boolean = isFeatureEnabled(featureConfig.organizations, "organizationHandle");
 
     /**
      * Redirects to the organizations edit page when the edit button is clicked.
@@ -183,6 +197,19 @@ export const OrganizationList: FunctionComponent<OrganizationListPropsInterface>
                 .get("ORGANIZATION_UPDATE")
                 .replace(":id", organizationId)
         });
+    };
+
+    /**
+     * Handles the organization list item click.
+     *
+     * @param organizationId - Organization id.
+     */
+    const handleOrganizationDetailsShow = (organizationId: string): void => {
+        getOrganization(organizationId)
+            .then((data: OrganizationResponseInterface) => {
+                setSelectedOrgDetails(data);
+                setSelectedOrgId(organizationId);
+            });
     };
 
     /**
@@ -304,58 +331,99 @@ export const OrganizationList: FunctionComponent<OrganizationListPropsInterface>
                 key: "name",
                 render: (organization: OrganizationInterface): ReactNode => {
                     return (
-                        <Header
-                            image
-                            as="h6"
-                            className="header-with-icon"
-                            data-componentid={ `${ componentId }-item-heading` }
-                        >
-                            <GenericIcon
-                                defaultIcon
-                                relaxed="very"
-                                size="micro"
-                                shape="rounded"
-                                spaced="right"
-                                hoverable={ false }
-                                icon={ OrganizationIcon }
-                            />
-                            { organization.id === OrganizationManagementConstants.SUPER_ORGANIZATION_ID
-                               && (< Header.Content >
-                                   <Icon
-                                       className="organization-active-icon active"
-                                       size="small"
-                                       name="circle"
-                                   />
-                               </Header.Content>)
-                            }
-                            <Header.Content>
-                                <Popup
-                                    trigger={
-                                        (<Icon
-                                            data-componentid={ `${ componentId }-org-status-icon` }
-                                            className={ getClassNamesForStatusIcon(organization.status) }
-                                            size="small"
-                                            name="circle"
-                                        />)
-                                    }
-                                    content={
-                                        organization.status === "ACTIVE"
-                                            ? t("common:active")
-                                            : t("common:disabled")
-                                    }
-                                    inverted
+                        <>
+                            <Header
+                                image
+                                as="h6"
+                                className="header-with-icon"
+                                data-componentid={ `${ componentId }-item-heading` }
+                            >
+                                <GenericIcon
+                                    defaultIcon
+                                    relaxed="very"
+                                    size="micro"
+                                    shape="rounded"
+                                    spaced="right"
+                                    hoverable={ false }
+                                    icon={ OrganizationIcon }
                                 />
-                            </Header.Content>
-                            <Header.Content>
-                                { organization.name }
-                                <Header.Subheader
-                                    className="truncate ellipsis"
-                                    data-componentid={ `${ componentId }-item-sub-heading` }
+                                { organization?.id === OrganizationManagementConstants.SUPER_ORGANIZATION_ID
+                                && (<Header.Content>
+                                    <Icon
+                                        className="organization-active-icon active"
+                                        size="small"
+                                        name="circle"
+                                    />
+                                </Header.Content>)
+                                }
+                                <Header.Content>
+                                    <Popup
+                                        trigger={
+                                            (<Icon
+                                                data-componentid={ `${ componentId }-org-status-icon` }
+                                                className={ getClassNamesForStatusIcon(organization?.status) }
+                                                size="small"
+                                                name="circle"
+                                            />)
+                                        }
+                                        content={
+                                            organization?.status === "ACTIVE"
+                                                ? t("common:active")
+                                                : t("common:disabled")
+                                        }
+                                        inverted
+                                    />
+                                </Header.Content>
+                                <Header.Content>
+                                    { organization?.name }
+                                    <Header.Subheader
+                                        className="truncate ellipsis"
+                                        data-componentid={ `${ componentId }-item-sub-heading` }
+                                    >
+                                        {
+                                            isOrgHandleFeatureEnabled
+                                                ? (
+                                                    <>Organization Handle:
+                                                        <Label size="tiny">{ organization?.orgHandle }</Label>
+                                                    </>
+                                                )
+                                                : (
+                                                    <>Organization Id:<Label size="tiny">{ organization?.id }</Label></>
+                                                )
+                                        }
+                                    </Header.Subheader>
+                                </Header.Content>
+                            </Header>
+                            { ( organization?.id === selectedOrgId ) && (
+                                <Breadcrumbs
+                                    className="organization-path-breadcrumb"
+                                    aria-label="Organization hierarchy navigation"
                                 >
-                                    Organization Id:<Label size="tiny">{ organization.id }</Label>
-                                </Header.Subheader>
-                            </Header.Content>
-                        </Header>
+                                    { (selectedOrgDetails?.ancestorPath || []).map((
+                                        pathSegment: OrganizationAncestorPathSegmentInterface,
+                                        index: number) => (
+                                        <React.Fragment key={ index }>
+                                            <Typography
+                                                color="inherit"
+                                                key={ index }
+                                            >
+                                                { (index === 0) && (
+                                                    <CloneIcon
+                                                        size={ 14 }
+                                                        className="organization-path-breadcrumb-icon"
+                                                    />
+                                                ) }
+                                                { pathSegment.name }
+                                            </Typography>
+                                        </React.Fragment>
+                                    )) }
+                                    <Typography color="text.primary">
+                                        <BuildingAltIcon size={ 14 } className="organization-path-breadcrumb-icon" />
+                                        { organization?.name }
+                                    </Typography>
+                                </Breadcrumbs>
+                            ) }
+                        </>
                     );
                 },
                 title: t("organizations:list.columns.name")
@@ -382,6 +450,14 @@ export const OrganizationList: FunctionComponent<OrganizationListPropsInterface>
         }
 
         return [
+            {
+                "data-componentid": `${ componentId }-item-view-details-button`,
+                icon: () => "info circle",
+                onClick: (e: SyntheticEvent, organization: OrganizationInterface): void =>
+                    handleOrganizationDetailsShow(organization?.id),
+                popupText: () => t("common:viewDetails"),
+                renderer: "semantic-icon"
+            },
             organizationConfigs.allowNavigationInDropdown && {
                 "data-componentid": `${ componentId }-item-go-to-organization-button`,
                 icon: (): SemanticICONS => {
@@ -400,7 +476,7 @@ export const OrganizationList: FunctionComponent<OrganizationListPropsInterface>
                     const isActive: boolean = organization.status === "ACTIVE";
 
                     authorizedList?.organizations?.map((org: OrganizationInterface) => {
-                        if (org.id === organization.id) {
+                        if (org.id === organization?.id) {
                             isAuthorized = true;
                         }
                     });
@@ -432,7 +508,7 @@ export const OrganizationList: FunctionComponent<OrganizationListPropsInterface>
                         : "pencil alternate";
                 },
                 onClick: (e: SyntheticEvent, organization: OrganizationInterface): void =>
-                    handleOrganizationEdit(organization.id),
+                    handleOrganizationEdit(organization?.id),
                 popupText: (_organization: OrganizationInterface ): string => {
                     return !hasOrganizationUpdatePermissions
                         ? t("common:view")
@@ -488,7 +564,9 @@ export const OrganizationList: FunctionComponent<OrganizationListPropsInterface>
                 <EmptyPlaceholder
                     className={ !isRenderedOnPortal ? "list-placeholder mr-0" : "" }
                     action={
-                        onEmptyListPlaceholderActionClick && (
+                        isFeatureEnabled(featureConfig.organizations,
+                            OrganizationManagementConstants.FEATURE_DICTIONARY.get("ORGANIZATION_CREATE"))
+                        && onEmptyListPlaceholderActionClick && (
                             <Show when={ featureConfig?.organizations?.scopes?.create }>
                                 <PrimaryButton
                                     disabled={ parentOrganization?.status === "DISABLED" }

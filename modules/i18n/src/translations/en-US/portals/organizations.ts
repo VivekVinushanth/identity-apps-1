@@ -97,6 +97,11 @@ export const organizations: organizationsNS = {
                 label: "Organization Name",
                 placeholder: "Enter organization name"
             },
+            orgHandle: {
+                ariaLabel: "Organization Handle",
+                label: "Organization Handle",
+                placeholder: "Enter organization handle"
+            },
             type: {
                 ariaLabel: "Organization Type",
                 label: "Organization Type"
@@ -127,6 +132,22 @@ export const organizations: organizationsNS = {
                 validation: {
                     duplicate: "Organization name already exists",
                     empty: "Organization name is required"
+                }
+            },
+            orgHandle: {
+                errors: {
+                    generationFailed: "Unable to generate an available organization handle."
+                },
+                label: "Organization Handle",
+                placeholder: "Enter organization handle",
+                tooltip: "A human-readable unique identifier used for organization discovery in your B2B applications. Leave this field blank to use the organization ID as the handle.\nPlease note that the organization handle cannot be edited after organization creation.",
+                validation: {
+                    duplicate: "The entered organization handle already exists.",
+                    empty: "The organization handle is required.",
+                    invalidFirstCharacter: "The organization handle must begin with an alphabet character.",
+                    invalidLength: "The organization handle must be more than 4 characters, less than 30 characters.",
+                    invalidPattern: "The entered organization handle contains invalid characters. Valid characters include letters (a-z, A-Z), numbers, spaces, periods (.), hyphens (-), and underscores (_).",
+                    mandatoryExtension: "The organization handle should include a domain extension, such as .com (E.g,: abc.com)."
                 }
             },
             structural: "Structural",

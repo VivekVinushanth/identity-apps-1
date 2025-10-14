@@ -2440,6 +2440,16 @@ export interface Extensions {
     manage: {
         accountLogin: {
             notifications: {
+                revert: {
+                    error: {
+                        description: string;
+                        message: string;
+                    },
+                    success: {
+                        description: string;
+                        message: string;
+                    }
+                };
                 success: {
                     description: string;
                     message: string;
@@ -2528,6 +2538,7 @@ export interface Extensions {
                     makeDefaultOrganization: string;
                     backButton: string;
                     copyOrganizationId: string;
+                    copyOrganizationHandle: string;
                     copied: string;
                     tenantSearch: {
                         placeholder: string;
@@ -2765,9 +2776,14 @@ export interface Extensions {
                     inputLabel: {
                         alphanumericUsername: string;
                         alphanumericUsernamePlaceholder: string;
+                        email: string;
                         emailUsername: string;
                     }
-                    inviteUserTooltip: string;
+                    inviteUserTooltip: {
+                        emailLinkInviteTooltip: string;
+                        emailOTPInviteTooltip: string;
+                        smsOTPInviteTooltip: string;
+                    };
                     inviteUserOfflineTooltip: string;
                     inviteLink: {
                         error: {
@@ -2824,6 +2840,7 @@ export interface Extensions {
                             accountHasBeenCreated: string;
                         };
                         passwordWarningMessage: string;
+                        passwordWarningMessageWithWorkFlow: string;
                         password: string;
                         username: string;
                     }
@@ -2890,6 +2907,7 @@ export interface Extensions {
                             enableSMSBasedRecovery: FormAttributes;
                         },
                         smsProviderWarning: string;
+                        smsProviderWarningSubOrg: string;
                         recoveryOptionHeading: string;
                     },
                     heading: string;
@@ -3049,6 +3067,35 @@ export interface Extensions {
                     subHeading: string;
                 };
                 inviteUserToSetPassword: {
+                    heading: string;
+                    form: {
+                        fields: {
+                            enableInviteUserToSetPassword: FormAttributes;
+                            enableEmailBasedAskPassword: FormAttributes;
+                            enableSMSBasedAskPassword: FormAttributes;
+                            emailAskPasswordOptions: {
+                                header: string;
+                                emailLink: {
+                                    label: string;
+                                },
+                                emailOtp: {
+                                    label: string;
+                                },
+                                smsOtp: {
+                                    label: string;
+                                }
+                            };
+                            expiryTime: FormAttributes;
+                            enableAccountActivationEmail: FormAttributes;
+                            enableAccountLockOnCreation: FormAttributes;
+                            askPasswordOtpUseUppercase: FormAttributes;
+                            askPasswordOtpUseLowercase: FormAttributes;
+                            askPasswordOtpUseNumeric: FormAttributes;
+                            askPasswordOtpLength: FormAttributes;
+                        };
+                    };
+                    otpConfigHeading: string;
+                    connectorDescription: string;
                     notification: {
                         error: NotificationItem;
                         success: NotificationItem;
@@ -3240,6 +3287,7 @@ export interface Extensions {
                         updateRole: {
                             error: NotificationItem;
                             genericError: NotificationItem;
+                            pendingApproval: NotificationItem;
                             success: NotificationItem;
                         };
                     }
@@ -3287,7 +3335,7 @@ export interface Extensions {
                 attributeManagement: string;
                 AccountManagement: string;
                 userManagement: string;
-                approvalWorkflows: string;
+                workflows: string;
                 organizationSettings: string;
             };
         };

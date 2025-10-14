@@ -245,6 +245,8 @@ export const ClaimsList: FunctionComponent<ClaimsListPropsInterface> = (
 
     const primaryUserStoreDomainName: string = useSelector((state: AppState) =>
         state?.config?.ui?.primaryUserStoreDomainName);
+    const systemReservedUserStores: string[] = useSelector((state: AppState) =>
+        state?.config?.ui?.systemReservedUserStores);
 
     const [ submitExternalClaim, setSubmitExternalClaim ] = useTrigger();
 
@@ -277,11 +279,13 @@ export const ClaimsList: FunctionComponent<ClaimsListPropsInterface> = (
     const checkUserStoreMapping = (claim: Claim): string[] => {
         const userStoresNotSet: string[] = [];
 
-        userStores?.forEach((userStore: UserStoreListItem) => {
-            claim?.attributeMapping?.find((attribute: AttributeMapping) => {
-                return attribute.userstore.toLowerCase() === userStore.name.toLowerCase();
-            }) ?? userStoresNotSet.push(userStore.name);
-        });
+        userStores
+            ?.filter((userStore: UserStoreListItem) => !systemReservedUserStores?.includes(userStore.name))
+            ?.forEach((userStore: UserStoreListItem) => {
+                claim?.attributeMapping?.find((attribute: AttributeMapping) => {
+                    return attribute.userstore.toLowerCase() === userStore.name.toLowerCase();
+                }) ?? userStoresNotSet.push(userStore.name);
+            });
 
         claim?.attributeMapping?.find((attribute: AttributeMapping) => {
             return attribute.userstore === primaryUserStoreDomainName;
@@ -646,10 +650,14 @@ export const ClaimsList: FunctionComponent<ClaimsListPropsInterface> = (
                             ? t("claims:list.placeholders.emptyList.title.local")
                             : isDialect(list)
                                 ? t("claims:list.placeholders.emptyList.title.dialect")
-                                : t(
-                                    "claims:list.placeholders.emptyList.title.external",
-                                    { type: resolveType(attributeType, true) }
-                                )
+                                : isSubOrganization()
+                                    ? t("claims:list.placeholders.emptyList.title.readOnlyDialect",
+                                        { type: resolveType(attributeType, true) }
+                                    )
+                                    : t(
+                                        "claims:list.placeholders.emptyList.title.external",
+                                        { type: resolveType(attributeType, true) }
+                                    )
                     }
                     subtitle={ [
 
@@ -990,7 +998,8 @@ export const ClaimsList: FunctionComponent<ClaimsListPropsInterface> = (
                 id: "actions",
                 key: "actions",
                 textAlign: "right",
-                title: ClaimManagementConstants.EMPTY_STRING
+                title: ClaimManagementConstants.EMPTY_STRING,
+                width: 2
             }
         ];
     };

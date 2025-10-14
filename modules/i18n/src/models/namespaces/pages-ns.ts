@@ -29,6 +29,10 @@ export interface pagesNS {
         subTitle: string;
         backButton: string;
     };
+    agents: {
+        title: string;
+        subTitle: string;
+    },
     approvalsPage: {
         title: string;
         subTitle: string;
@@ -124,6 +128,10 @@ export interface pagesNS {
         backButton: string;
     };
     invite: {
+        title: string;
+        subTitle: string;
+    };
+    workflowRequestsPage: {
         title: string;
         subTitle: string;
     };

@@ -98,6 +98,10 @@ export const attributeConfig: AttributeConfig = {
             return excludingSet.has(dialectID);
         },
         showAddExternalAttributeButton: (_dialectID: string): boolean => {
+            if (_dialectID === ClaimManagementConstants.ATTRIBUTE_DIALECT_IDS.get("SCIM2_FOR_AGENTS")) {
+                return false;
+            }
+
             return true;
         }
     },
@@ -303,7 +307,6 @@ export const attributeConfig: AttributeConfig = {
     showCustomAttributeMapping: true,
     showCustomDialectInSCIM: true,
     systemClaims: [
-        "http://wso2.org/claims/externalid",
         "http://wso2.org/claims/userid",
         "http://wso2.org/claims/created",
         "http://wso2.org/claims/modified",

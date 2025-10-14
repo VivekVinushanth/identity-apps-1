@@ -95,6 +95,10 @@ export interface PreUpdatePasswordActionInterface extends ActionInterface {
      * Password sharing type of the action.
      */
     passwordSharing: PasswordSharing;
+    /**
+     * User attribute list.
+     */
+    attributes?: string[];
 }
 
 /**
@@ -119,6 +123,14 @@ interface EndpointInterface {
      * Authentication configurations of the Action.
      */
     authentication: AuthenticationInterface;
+    /**
+     * Allowed request headers to be shared with the endpoint.
+     */
+    allowedHeaders?: string[];
+    /**
+     * Allowed request parameters to be shared with the endpoint.
+     */
+    allowedParameters?: string[];
 }
 
 /**
@@ -210,6 +222,10 @@ export interface ActionBaseResponseInterface {
      * Status of the Action.
      */
     status: ActionStatus;
+    /**
+     * Version of the Action.
+     */
+    version?: string;
 }
 
 /**
@@ -244,6 +260,10 @@ export interface PreUpdatePasswordActionResponseInterface extends ActionResponse
      * Password sharing type of the action.
      */
     passwordSharing: PasswordSharing;
+    /**
+     * User attribute list.
+     */
+    attributes?: string[];
 }
 
 export interface PreUpdateProfileActionResponseInterface extends ActionResponseInterface {
@@ -276,6 +296,14 @@ export interface EndpointResponseInterface {
      */
     uri: string;
     /**
+     * Headers that needs to be shared with the endpoint.
+     */
+    allowedHeaders?: string[];
+    /**
+     * Parameters that needs to be shared with the endpoint.
+     */
+    allowedParameters?: string[];
+    /**
      * Authentication configurations of the Action.
      */
     authentication: {
@@ -306,6 +334,10 @@ export interface ActionUpdateInterface {
      * Rule configuration of the Action.
      */
     rule?: RuleWithoutIdInterface | RuleExecuteCollectionWithoutIdInterface | Record<string, never>;
+    /**
+     * Version of the Action.
+     */
+    version?: string;
 }
 
 /**
@@ -316,6 +348,10 @@ export interface PreUpdatePasswordActionUpdateInterface extends ActionUpdateInte
      * Password sharing type of the updating action.
      */
     passwordSharing?: PasswordSharingUpdate;
+    /**
+     * User attribute list.
+     */
+    attributes?: string[];
 }
 
 /**
@@ -434,6 +470,14 @@ export interface EndpointConfigFormPropertyInterface {
      * Value property of apiKey authentication.
      */
     valueAuthProperty?: string;
+    /**
+     * Allowed request headers to be shared with the endpoint.
+     */
+    allowedHeaders?: string[];
+    /**
+     * Allowed request parameters to be shared with the endpoint.
+     */
+    allowedParameters?: string[];
 }
 
 /**
@@ -448,6 +492,10 @@ export interface PreUpdatePasswordActionConfigFormPropertyInterface extends Acti
      * Certificate of the Password.
      */
     certificate: string;
+    /**
+     * User attribute list.
+     */
+    attributes: string[];
 }
 
 /**
@@ -464,6 +512,10 @@ export interface PreUpdateProfileActionConfigFormPropertyInterface extends Actio
  *  Action Type card info Interface.
  */
 export interface ActionTypeCardInterface {
+    /**
+     * Type of the Action.
+     */
+    type: ActionType,
     /**
      * Description of the Action type.
      */

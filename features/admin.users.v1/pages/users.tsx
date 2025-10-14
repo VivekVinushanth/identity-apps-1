@@ -32,6 +32,8 @@ import { userstoresConfig } from "@wso2is/admin.extensions.v1";
 import { userConfig } from "@wso2is/admin.extensions.v1/configs";
 import FeatureGateConstants from "@wso2is/admin.feature-gate.v1/constants/feature-gate-constants";
 import { FeatureStatusLabel } from "@wso2is/admin.feature-gate.v1/models/feature-status";
+import useGetFlowConfig from "@wso2is/admin.flow-builder-core.v1/api/use-get-flow-config";
+import { FlowTypes } from "@wso2is/admin.flows.v1/models/flows";
 import { useGetCurrentOrganizationType } from "@wso2is/admin.organizations.v1/hooks/use-get-organization-type";
 import {
     ConnectorPropertyInterface,
@@ -161,6 +163,10 @@ const UsersPage: FunctionComponent<UsersPageInterface> = (
         featureConfig?.guestUser?.scopes?.create
     );
 
+    const { data: invitedUserRegistrationConfigs } = useGetFlowConfig(
+        FlowTypes.INVITED_USER_REGISTRATION
+    );
+
     const [ searchQuery, setSearchQuery ] = useState<string>("");
     const [ listOffset, setListOffset ] = useState<number>(1);
     const [ activeTabIndex, setActiveTabIndex ] = useState<number>(0);
@@ -185,7 +191,14 @@ const UsersPage: FunctionComponent<UsersPageInterface> = (
     const [ invitedUserListItemLimit, setInvitedUserListItemLimit ]
         = useState<number>(UIConstants.DEFAULT_RESOURCE_LIST_ITEM_LIMIT);
     const [ invitedUserListOffset, setInvitedUserListOffset ] = useState<number>(1);
+
+    const isLegacyFlowsEnabled: boolean = useSelector(
+        (state: AppState) => state.config.ui.flowExecution.enableLegacyFlows
+    );
     const profileSchemas: ProfileSchemaInterface[] = useSelector((state: AppState) => state?.profile?.profileSchemas);
+    const systemReservedUserStores: string[] =
+        useSelector((state: AppState) => state?.config?.ui?.systemReservedUserStores);
+
     const [ selectedAccountStatusFilters, setSelectedAccountStatusFilters ] = useState<string[]>([]);
 
     const eventPublisher: EventPublisher = EventPublisher.getInstance();
@@ -282,7 +295,11 @@ const UsersPage: FunctionComponent<UsersPageInterface> = (
 
         if (userStoresList?.length > 0) {
             userStoresList.forEach((store: UserStoreListItem, index: number) => {
-                if (store.name.toUpperCase() !== userstoresConfig.primaryUserstoreName && store.enabled) {
+                if (
+                    store.name.toUpperCase() !== userstoresConfig.primaryUserstoreName
+                        && store.enabled
+                        && !systemReservedUserStores?.includes(store.name)
+                ) {
                     const storeOption: UserStoreItem = {
                         disabled: store.typeName === RemoteUserStoreManagerType.RemoteUserStoreManager,
                         key: index,
@@ -608,7 +625,8 @@ const UsersPage: FunctionComponent<UsersPageInterface> = (
                     (property: ConnectorPropertyInterface) =>
                         property.name === ServerConfigurationsConstants.EMAIL_VERIFICATION_ENABLED);
 
-                setEmailVerificationEnabled(emailVerification.value === "true");
+                setEmailVerificationEnabled(emailVerification.value === "true" ||
+                    invitedUserRegistrationConfigs?.isEnabled);
             }).catch((error: AxiosError) => {
                 handleAlerts({
                     description: error?.response?.data?.description ?? t(
@@ -1017,17 +1035,30 @@ const UsersPage: FunctionComponent<UsersPageInterface> = (
                     { t("users:confirmations.addMultipleUser.message") }
                 </ConfirmationModal.Message>
                 <ConfirmationModal.Content>
-                    <Trans i18nKey="users:confirmations.addMultipleUser.content">
-                        Invite User to Set Password should be enabled to add multiple users.
-                        Please enable email invitations for user password setup from
-                        <Link
-                            onClick={ () => history.push(AppConstants.getPaths().get("GOVERNANCE_CONNECTOR_EDIT")
-                                .replace(":categoryId", ServerConfigurationsConstants.USER_ONBOARDING_CONNECTOR_ID)
-                                .replace(":connectorId", ServerConfigurationsConstants.ASK_PASSWORD_CONNECTOR_ID)) }
-                            external={ false }>
-                            Login & Registration settings
-                        </Link>
-                    </Trans>
+                    { isLegacyFlowsEnabled ? (
+                        <Trans i18nKey="users:confirmations.addMultipleUser.legacyContent">
+                            Invite User to Set Password should be enabled to add multiple users.
+                            Please enable email invitations for user password setup from
+                            <Link
+                                onClick={ () => history.push(AppConstants.getPaths().get("GOVERNANCE_CONNECTOR_EDIT")
+                                    .replace(":categoryId", ServerConfigurationsConstants.USER_ONBOARDING_CONNECTOR_ID)
+                                    .replace(":connectorId", ServerConfigurationsConstants.ASK_PASSWORD_CONNECTOR_ID)) }
+                                external={ false }>
+                                Login & Registration settings
+                            </Link>
+                        </Trans>
+                    ) : (
+                        <Trans i18nKey="users:confirmations.addMultipleUser.content">
+                            Invite User to Set Password should be enabled to add multiple users.
+                            Please enable user password setup invitations from the
+                            <Link
+                                onClick={ () => history.push(AppConstants.getPaths()
+                                    .get("INVITE_USER_PASSWORD_SETUP_FLOW_BUILDER")) }
+                                external={ false }>
+                                Invited User Registration Flow Builder.
+                            </Link>
+                        </Trans>
+                    ) }
                 </ConfirmationModal.Content>
             </ConfirmationModal>
         );
@@ -1088,7 +1119,7 @@ const UsersPage: FunctionComponent<UsersPageInterface> = (
                 ) : renderUsersList()
             }
             {
-                showWizard && (
+                showWizard && !connectorConfigLoading && (
                     <AddUserWizard
                         data-componentid={ "user-mgt-add-user-wizard-modal" }
                         data-testid={ "user-mgt-add-user-wizard-modal" }

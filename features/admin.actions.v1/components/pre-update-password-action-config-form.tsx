@@ -44,11 +44,13 @@ import { useSelector } from "react-redux";
 import { ActionCertificateComponent } from "./certificate/action-certificate";
 import CommonActionConfigForm from "./common-action-config-form";
 import RuleConfigForm from "./rule-config-form";
+import UserAttributeList from "./user-attributes/user-attribute-list";
 import createAction from "../api/create-action";
 import updateAction from "../api/update-action";
 import useGetActionById from "../api/use-get-action-by-id";
 import useGetActionsByType from "../api/use-get-actions-by-type";
 import { ActionsConstants } from "../constants/actions-constants";
+import { ActionVersionInfo } from "../hooks/use-action-versioning";
 import {
     ActionConfigFormPropertyInterface,
     AuthenticationPropertiesInterface,
@@ -56,9 +58,9 @@ import {
     PreUpdatePasswordActionConfigFormPropertyInterface,
     PreUpdatePasswordActionInterface, PreUpdatePasswordActionUpdateInterface
 } from "../models/actions";
-import "./pre-update-password-action-config-form.scss";
 import { useHandleError, useHandleSuccess } from "../util/alert-util";
 import { validateActionCommonFields } from "../util/form-field-util";
+import "./pre-update-password-action-config-form.scss";
 
 /**
  * Prop types for the action configuration form component.
@@ -84,6 +86,10 @@ interface PreUpdatePasswordActionConfigFormInterface extends IdentifiableCompone
      * Specifies action creation state.
      */
     isCreateFormState: boolean;
+    /**
+     * Action version information.
+     */
+    versionInfo: ActionVersionInfo;
 }
 
 const PreUpdatePasswordActionConfigForm: FunctionComponent<PreUpdatePasswordActionConfigFormInterface> = ({
@@ -92,6 +98,7 @@ const PreUpdatePasswordActionConfigForm: FunctionComponent<PreUpdatePasswordActi
     isReadOnly,
     actionTypeApiPath,
     isCreateFormState,
+    versionInfo,
     ["data-componentid"]: _componentId = "pre-update-password-action-config-form"
 }: PreUpdatePasswordActionConfigFormInterface): ReactElement => {
 
@@ -99,6 +106,8 @@ const PreUpdatePasswordActionConfigForm: FunctionComponent<PreUpdatePasswordActi
         (state: AppState) => state.config.ui.features.actions);
     const [ isAuthenticationUpdateFormState, setIsAuthenticationUpdateFormState ] = useState<boolean>(false);
     const [ authenticationType, setAuthenticationType ] = useState<AuthenticationType>(null);
+    const [ isUserAttributesChanged, setIsUserAttributesChanged ] = useState<boolean>(false);
+    const [ userAttributeList, setUserAttributeList ] = useState<string[]>([]);
     const [ isSubmitting, setIsSubmitting ] = useState<boolean>(false);
     const [ PEMValue, setPEMValue ] = useState<string>(undefined);
     const [ isHasRule, setIsHasRule ] = useState<boolean>(false);
@@ -114,6 +123,7 @@ const PreUpdatePasswordActionConfigForm: FunctionComponent<PreUpdatePasswordActi
     } = useGetActionsByType(actionTypeApiPath);
 
     const {
+        data: action,
         mutate: mutateAction
     } = useGetActionById(actionTypeApiPath, initialValues?.id);
 
@@ -124,6 +134,9 @@ const PreUpdatePasswordActionConfigForm: FunctionComponent<PreUpdatePasswordActi
     // TODO: Temporary flag to show/hide the rule component.
     const showRuleComponent: boolean = isFeatureEnabled(
         actionsFeatureConfig, ActionsConstants.FEATURE_DICTIONARY.get("PRE_UPDATE_PASSWORD_RULE"));
+    // TODO: Temporary flag to show/hide the allowedHeaders and allowedParameters section.
+    const showHeadersAndParams: boolean = isFeatureEnabled(
+        actionsFeatureConfig, ActionsConstants.FEATURE_DICTIONARY.get("PRE_UPDATE_PASSWORD_HEADERS_AND_PARAMS"));
 
     /**
      * The following useEffect is used to set the current Action Authentication Type.
@@ -157,6 +170,25 @@ const PreUpdatePasswordActionConfigForm: FunctionComponent<PreUpdatePasswordActi
             <Skeleton variant="rectangular" height={ 7 } />
         </Box>
     );
+
+    /**
+     * Callback to be triggered when the user attribute list is updated.
+     *
+     * The final user attribute list is updated only if the user has made changes to the initial list.
+     * @param hasChanged - Flag to indicate whether the user has made changes to the initial list.
+     * @param changedAttributes - Updated attribute list.
+     */
+    const handleUserAttributeChange = (hasChanged: boolean, changedAttributes: string[]) => {
+
+        if (!hasChanged) {
+            setIsUserAttributesChanged(false);
+
+            return;
+        }
+
+        setIsUserAttributesChanged(true);
+        setUserAttributeList([ ...changedAttributes ]);
+    };
 
     const validateForm = (values: PreUpdatePasswordActionConfigFormPropertyInterface):
         Partial<PreUpdatePasswordActionConfigFormPropertyInterface> => {
@@ -217,6 +249,7 @@ const PreUpdatePasswordActionConfigForm: FunctionComponent<PreUpdatePasswordActi
 
         if (isCreateFormState) {
             const actionValues: PreUpdatePasswordActionInterface = {
+                attributes: userAttributeList,
                 endpoint: {
                     authentication: {
                         properties: authProperties,
@@ -247,6 +280,7 @@ const PreUpdatePasswordActionConfigForm: FunctionComponent<PreUpdatePasswordActi
         } else {
             // Updating the action
             const updatingValues: PreUpdatePasswordActionUpdateInterface = {
+                attributes: isUserAttributesChanged ? userAttributeList : undefined,
                 endpoint: isAuthenticationUpdateFormState || changedFields?.endpointUri ? {
                     authentication: isAuthenticationUpdateFormState ? {
                         properties: authProperties,
@@ -292,7 +326,9 @@ const PreUpdatePasswordActionConfigForm: FunctionComponent<PreUpdatePasswordActi
                     onAuthenticationTypeChange={ (updatedValue: AuthenticationType, change: boolean) => {
                         setAuthenticationType(updatedValue);
                         setIsAuthenticationUpdateFormState(change);
-                    } } />
+                    } }
+                    showHeadersAndParams={ showHeadersAndParams }
+                />
                 <Divider className="divider-container" />
                 <Typography variant="h6" className="password-sharing-label">
                     { t("actions:fields.passwordSharing.label") }
@@ -343,6 +379,16 @@ const PreUpdatePasswordActionConfigForm: FunctionComponent<PreUpdatePasswordActi
                     readOnly={ isReadOnly }
                     data-componentid={ `${ _componentId }-certificate` }
                 />
+                <Divider className="divider-container" />
+                <Typography variant="h6" className="heading-container" >
+                    { t("actions:fields.userAttributes.heading") }
+                </Typography>
+                <UserAttributeList
+                    initialValues={ initialValues?.attributes }
+                    onAttributesChange={ handleUserAttributeChange }
+                    isReadOnly={ isReadOnly }
+                    data-componentid={ `${ _componentId }-user-attributes` }
+                />
                 { RuleExpressionsMetaData && showRuleComponent && (
                     <RuleConfigForm
                         readonly={ isReadOnly }
@@ -364,6 +410,12 @@ const PreUpdatePasswordActionConfigForm: FunctionComponent<PreUpdatePasswordActi
                 <RulesProvider
                     conditionExpressionsMetaData={ RuleExpressionsMetaData }
                     initialData={ initialValues?.rule }
+                    hidden={ {
+                        values:
+                            ActionsConstants.__TEMPORARY__DISALLOWED_RULES[
+                                ActionsConstants.PRE_UPDATE_PASSWORD_URL_PATH
+                            ]?.[action?.version || versionInfo?.latestVersion]
+                    } }
                 >
                     <FinalForm
                         onSubmit={ (values: PreUpdatePasswordActionConfigFormPropertyInterface, form: any) => {
@@ -389,18 +441,15 @@ const PreUpdatePasswordActionConfigForm: FunctionComponent<PreUpdatePasswordActi
                                             loading={ isSubmitting }
                                             disabled={ isReadOnly }
                                         >
-                                            {
-                                                isCreateFormState
-                                                    ? t("actions:buttons.create")
-                                                    : t("actions:buttons.update")
-                                            }
+                                            { isCreateFormState
+                                                ? t("actions:buttons.create")
+                                                : t("actions:buttons.update") }
                                         </Button>
                                     ) }
                                 </div>
                             </EmphasizedSegment>
                         ) }
-                    >
-                    </FinalForm>
+                    ></FinalForm>
                 </RulesProvider>
             ) }
         </>

@@ -2239,6 +2239,13 @@ export const UserProfileUpdated: FunctionComponent<UserProfilePropsInterface> = 
                 }
             }
             if (accountLockedReason === AccountLockedReason.PENDING_ASK_PASSWORD) {
+                if (isAskPasswordEmailOTPEnabled()) {
+                    return RecoveryScenario.ASK_PASSWORD_VIA_EMAIL_OTP;
+                }
+                if (isAskPasswordSMSOTPEnabled()) {
+                    return RecoveryScenario.ASK_PASSWORD_VIA_SMS_OTP;
+                }
+
                 return RecoveryScenario.ASK_PASSWORD;
             }
         }
@@ -2364,6 +2371,34 @@ export const UserProfileUpdated: FunctionComponent<UserProfilePropsInterface> = 
         return property?.value === "true";
     };
 
+    /**
+     * Checks if ask password via Email OTP is enabled.
+     *
+     * @returns true if enabled, false otherwise
+     */
+    const isAskPasswordEmailOTPEnabled = (): boolean => {
+        const property: ConnectorPropertyInterface | undefined = connectorProperties?.find(
+            (property: ConnectorPropertyInterface) =>
+                property.name === ServerConfigurationsConstants.ASK_PASSWORD_EMAIL_OTP
+        );
+
+        return property?.value === "true";
+    };
+
+    /**
+     * Checks if ask password via SMS OTP is enabled.
+     *
+     * @returns true if enabled, false otherwise
+     */
+    const isAskPasswordSMSOTPEnabled = (): boolean => {
+        const property: ConnectorPropertyInterface | undefined = connectorProperties?.find(
+            (property: ConnectorPropertyInterface) =>
+                property.name === ServerConfigurationsConstants.ASK_PASSWORD_SMS_OTP
+        );
+
+        return property?.value === "true";
+    };
+
     if (isReadOnlyUserStoresLoading || isEmpty(profileInfo)) {
         return (
             <ContentLoader />
@@ -2396,6 +2431,7 @@ export const UserProfileUpdated: FunctionComponent<UserProfilePropsInterface> = 
                             && !isReadOnlyUserStore
                             && (!isEmpty(tenantAdmin) || tenantAdmin !== null)
                             && !user[ SCIMConfigs.scim.systemSchema ]?.userSourceId
+                            && isUserManagedByParentOrg
                             && editUserDisclaimerMessage
                         }
                         <FinalForm

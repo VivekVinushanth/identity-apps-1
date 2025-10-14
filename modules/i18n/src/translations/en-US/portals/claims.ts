@@ -19,6 +19,10 @@ import { ClaimsNS } from "../../../models";
 
 export const claims: ClaimsNS = {
     attributeMappings: {
+        agent: {
+            description: "The SCIM protocol representation for AI agent attributes used in agent identity management APIs.",
+            heading: "SCIM 2.0 for AI Agents"
+        },
         axschema: {
             description: "The Attribute Exchange Schema (axschema) representation "
                 + "for user attributes.",
@@ -39,7 +43,7 @@ export const claims: ClaimsNS = {
             heading: "OpenID Connect"
         },
         scim: {
-            description: "The SCIM2 protocol representation for user "
+            description: "The SCIM2 protocol representation for "
                 + "attributes that will be used in the SCIM2 API.",
             heading: "SCIM 2.0"
         }
@@ -70,7 +74,7 @@ export const claims: ClaimsNS = {
             content: "If you delete this attribute mapping, all the associated {{type}} attributes will "
                 + "also be deleted. Please proceed with caution.",
             header: "Are you sure?",
-            hint: "Please type <1>{{confirm}}</1> to confirm.",
+            hint: "Please confirm your action.",
             message: "This action is irreversible and will permanently delete the selected attribute " +
                 "mapping."
         },
@@ -183,6 +187,10 @@ export const claims: ClaimsNS = {
         },
         sections: {
             manageAttributeMappings: {
+                agent: {
+                    description: "The SCIM protocol representation for AI agent attributes used in agent identity management APIs.",
+                    heading: "SCIM 2.0 for AI Agents"
+                },
                 custom: {
                     description: "Communicate information about the user via custom mappings.",
                     heading: "Custom Attribute Mapping"
@@ -378,7 +386,8 @@ export const claims: ClaimsNS = {
                 title: {
                     dialect: "Add an Attribute Mapping",
                     external: "Add an {{type}} Attribute",
-                    local: "Add an Attribute"
+                    local: "Add an Attribute",
+                    readOnlyDialect: "No {{type}} Attributes Added"
                 }
             },
             emptySearch: {
@@ -465,8 +474,10 @@ export const claims: ClaimsNS = {
                 label: "Data Type",
                 options: {
                     boolean: "Boolean",
+                    date: "Date",
                     dateTime: "DateTime",
                     decimal: "Decimal",
+                    epoch: "Epoch",
                     integer: "Integer",
                     object: "Object",
                     options: "Options",
@@ -527,7 +538,7 @@ export const claims: ClaimsNS = {
             profiles: {
                 administratorConsole: "Administrator Console",
                 attributeConfigurations: {
-                    description: "Configure attribute profiles for different flows.",
+                    description: "Define how attributes appear and behave in different flows. These settings control only the user interface. They do not affect backend or API validation.",
                     title: "Attribute Configurations"
                 },
                 displayByDefault: "Display",
@@ -568,9 +579,9 @@ export const claims: ClaimsNS = {
             },
             subAttributes: {
                 label: "The sub-attributes of the attribute",
-                placeholder: "Select subattributes",
+                placeholder: "Select sub-attributes",
                 validationError: "At least one sub-attribute must be provided.",
-                validationErrorMessage: "Sub-attributes are required for complex data types."
+                validationErrorMessage: "Sub-attributes are required for the Object data type."
             },
             supportedByDefault: {
                 label: "Display this attribute on the user's profile"
