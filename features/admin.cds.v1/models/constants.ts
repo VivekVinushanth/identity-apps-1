@@ -65,3 +65,6 @@ export const AND_OPERATOR: string = "and";
  * two rules having the same priority at any point.
  */
 export const TEMP_PRIORITY: number = 999999;
+
+export const ATTRIBUTE_TYPE_PRIMITIVE_EXACT: string = "PRIMITIVE_EXACT";
+export const UNIFICATION_METHOD_DETERMINISTIC: string = "deterministic";

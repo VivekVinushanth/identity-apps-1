@@ -27,10 +27,13 @@ import { CustomerDataServiceEndpointsInterface } from "../models/endpoints";
 export const getCustomerDataServiceEndpoints = (
     serverOrigin: string
 ): CustomerDataServiceEndpointsInterface => {
+    const isOrigin: string = new URL(serverOrigin).origin;
+    const cdsOrigin: string = serverOrigin.replace(isOrigin, "https://localhost:8900");
+
     return {
-        cdsConfig: `${ serverOrigin }/cds/api/v1/config`,
-        cdsProfileSchema: `${ serverOrigin }/cds/api/v1/profile-schema`,
-        cdsProfiles: `${ serverOrigin }/cds/api/v1/profiles`,
-        cdsUnificationRules: `${ serverOrigin }/cds/api/v1/unification-rules`
+        cdsConfig: `${ cdsOrigin }/cds/api/v1/config`,
+        cdsProfileSchema: `${ cdsOrigin }/cds/api/v1/profile-schema`,
+        cdsProfiles: `${ cdsOrigin }/cds/api/v1/profiles`,
+        cdsUnificationRules: `${ cdsOrigin }/cds/api/v1/unification-rules`
     };
 };
